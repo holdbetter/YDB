@@ -4,7 +4,7 @@
              x:Class="YDB.Views.AboutPage"
              xmlns:vm="clr-namespace:YDB.ViewModels"
              Title="{Binding Title}">
-    
+
     <ContentPage.BindingContext>
         <vm:AboutViewModel />
     </ContentPage.BindingContext>
@@ -19,10 +19,15 @@
     </ContentPage.Resources>
     
     <Grid>
+        <Grid.GestureRecognizers>
+            <SwipeGestureRecognizer Direction="Right" Swiped="SwipeGestureRecognizer_Swiped"/>
+        </Grid.GestureRecognizers>
+        
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+        
         <StackLayout BackgroundColor="{StaticResource Accent}" VerticalOptions="FillAndExpand" HorizontalOptions="Fill">
             <StackLayout Orientation="Horizontal" HorizontalOptions="Center" VerticalOptions="Center">
                 <ContentView Padding="0,40,0,40" VerticalOptions="FillAndExpand">
@@ -30,6 +35,7 @@
                 </ContentView>
             </StackLayout>
         </StackLayout>
+        
         <ScrollView Grid.Row="1">
             <StackLayout Orientation="Vertical" Padding="16,40,16,40" Spacing="10">
                 <Label FontSize="22">

@@ -104,6 +104,9 @@
     </AppxManifest>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="btnAddImgUWP.png" />
+    <Content Include="database.png" />
+    <Content Include="iconPressed.png" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LargeTile.scale-100.png" />
     <Content Include="Assets\LargeTile.scale-200.png" />
@@ -132,6 +135,7 @@
     <Content Include="Assets\Wide310x150Logo.scale-100.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
     <Content Include="Assets\Wide310x150Logo.scale-400.png" />
+    <Content Include="checkMark.png" />
     <Content Include="xamarin_logo.png" />
     <Content Include="add.png" />
     <Content Include="save.png" />
@@ -148,14 +152,35 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Xamarin.Forms" Version="3.4.0.1008975" />
-    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="6.1.5"/>
+    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="6.2.8" />
+    <PackageReference Include="Xamarin.Forms">
+      <Version>3.6.0.293080</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\YDB\YDB.csproj">
       <Project>{D484B2E9-44CD-418A-8399-10F41F8F75D6}</Project>
       <Name>YDB</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Content Include="Assets\Fonts\GoogleSans-MediumItalic.ttf" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Assets\Fonts\GoogleSans-Regular.ttf" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Assets\Fonts\GoogleSans-Bold.ttf" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Assets\Fonts\GoogleSans-BoldItalic.ttf" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Assets\Fonts\GoogleSans-Italic.ttf" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Assets\Fonts\GoogleSans-Medium.ttf" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
