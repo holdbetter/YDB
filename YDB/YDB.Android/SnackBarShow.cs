@@ -22,9 +22,9 @@ namespace YDB.Droid
     {
         public void ShowSnackMessage()
         {
-            Activity activity = CrossCurrentActivity.Current.Activity;
-            Android.Views.View view = activity.FindViewById(Android.Resource.Id.Content);
-            Snackbar.Make(view, "Вы не вошли в аккаунт", Snackbar.LengthLong).Show();
+            //Activity activity = CrossCurrentActivity.Current.Activity;
+            //Android.Views.View view = activity.FindViewById(Android.Resource.Id.Content);
+            //Snackbar.Make(view, "Вы не вошли в аккаунт", Snackbar.LengthLong).Show();
         }
     }
 }

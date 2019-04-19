@@ -10,13 +10,13 @@ namespace YDB
 	public class Marker : ContentView
 	{
         public static List<RelativeLayout> rllist = new List<RelativeLayout>();
-        Button btnttt;
-        Label labelttt;
+        Button btn;
+        Label checkMarkL;
         RelativeLayout rltest;
 
         public Marker (Color buttonColor, Color markColor)
 		{
-            btnttt = new Button()
+            btn = new Button()
             {
                 BorderColor = Color.Gray,
                 BorderWidth = 0.5,
@@ -28,7 +28,7 @@ namespace YDB
                 BackgroundColor = buttonColor
             };
 
-            labelttt = new Label()
+            checkMarkL = new Label()
             {
                 HeightRequest = 35,
                 WidthRequest = 35,
@@ -44,7 +44,7 @@ namespace YDB
 
             rltest = new RelativeLayout() { HeightRequest = 35, WidthRequest = 35 };
 
-            rltest.Children.Add(btnttt, Constraint.RelativeToParent((parent) =>
+            rltest.Children.Add(btn, Constraint.RelativeToParent((parent) =>
             {
                 return parent.Width * 0;
             }), Constraint.RelativeToParent((parent) =>
@@ -52,7 +52,7 @@ namespace YDB
                 return parent.Height * 0;
             }));
 
-            rltest.Children.Add(labelttt, Constraint.RelativeToParent((parent) =>
+            rltest.Children.Add(checkMarkL, Constraint.RelativeToParent((parent) =>
             {
                 return parent.Width * 0;
             }), Constraint.RelativeToParent((parent) =>
@@ -60,7 +60,7 @@ namespace YDB
                 return parent.Height * 0;
             }));
 
-            btnttt.Command = new Command(() =>
+            btn.Command = new Command(() =>
             {
                 foreach (var item in rllist)
                 {
@@ -70,7 +70,7 @@ namespace YDB
                     }
                 }
 
-                (btnttt.Parent as RelativeLayout).Children[1].IsVisible = true;
+                (btn.Parent as RelativeLayout).Children[1].IsVisible = true;
             });
 
             Content = rltest;

@@ -1,12 +1,11 @@
 ﻿using System;
-
 using Android.App;
+using Android.Content;
 using Android.Content.PM;
 using Android.Runtime;
 using Android.Views;
 using Android.Widget;
 using Android.OS;
-using Plugin.CurrentActivity;
 
 namespace YDB.Droid
 {
@@ -21,6 +20,7 @@ namespace YDB.Droid
             base.OnCreate(savedInstanceState);
             
             global::Xamarin.Forms.Forms.Init(this, savedInstanceState);
+            global::Xamarin.Auth.Presenters.XamarinAndroid.AuthenticationConfiguration.Init(this, savedInstanceState);
             LoadApplication(new App());
 
         }

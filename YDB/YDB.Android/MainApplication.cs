@@ -16,7 +16,7 @@ namespace YDB.Droid
         public override void OnCreate()
         {
             base.OnCreate();
-            CrossCurrentActivity.Current.Init(this);
+            //CrossCurrentActivity.Current.Init(this);
         }
 
     }
