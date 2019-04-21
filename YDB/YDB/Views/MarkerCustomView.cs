@@ -2,19 +2,19 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
 using Xamarin.Forms;
 
-namespace YDB
+namespace YDB.Views
 {
-	public class Marker : ContentView
+	public class MarkerCustomView : ContentView
 	{
         public static List<RelativeLayout> rllist = new List<RelativeLayout>();
+
         Button btn;
         Label checkMarkL;
         RelativeLayout rltest;
 
-        public Marker (Color buttonColor, Color markColor)
+        public MarkerCustomView (Color buttonColor, Color markColor)
 		{
             btn = new Button()
             {

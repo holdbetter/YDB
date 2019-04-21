@@ -14,13 +14,14 @@ namespace YDB.Views
         MainPage RootPage { get => Application.Current.MainPage as MainPage; }
         List<HomeMenuItem> menuItems;
         ListView masterView;
-        Label hello, youNotLogin;
-        Label helloName, emptyList;
+        public Label hello, youNotLogin;
+        public Label helloName, emptyList;
         StackLayout nonLoginView1, nonLoginView2;
         StackLayout emptyDBView1, emptyDBView2, DBListView;
-        Button btnGo;
+        public Button btnGo;
         MenuPageViewModel menuPageViewModel;
         ImageButton imageButton;
+
         string username = "holdbetter";
 
         public StackLayout field1, field2;
@@ -130,7 +131,7 @@ namespace YDB.Views
             {
                 HorizontalOptions = LayoutOptions.Start,
                 VerticalOptions = LayoutOptions.EndAndExpand,
-                Text = $"Привет, {username}!",
+                Text = $"Привет!",
                 FontFamily = App.fontNameBold,
                 FontSize = Device.GetNamedSize(NamedSize.Large, typeof(Label)),
                 TextColor = Color.White
@@ -138,7 +139,7 @@ namespace YDB.Views
 
             emptyList = new Label()
             {
-                Text = "Список\nпуст",
+                Text = "Создать",
                 HorizontalTextAlignment = TextAlignment.Center,
                 HorizontalOptions = LayoutOptions.Center,
                 VerticalOptions = LayoutOptions.Center,

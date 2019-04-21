@@ -68,24 +68,24 @@
     <Compile Include="Main.cs" />
     <Compile Include="AppDelegate.cs" />
     <None Include="Entitlements.plist" />
-    <Compile Include="Google-Sans-Font\GoogleSans-Bold.ttf">
+    <None Include="Google-Sans-Font\GoogleSans-Bold.ttf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Compile>
-    <Compile Include="Google-Sans-Font\GoogleSans-BoldItalic.ttf">
+    </None>
+    <None Include="Google-Sans-Font\GoogleSans-BoldItalic.ttf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Compile>
-    <Compile Include="Google-Sans-Font\GoogleSans-Italic.ttf">
+    </None>
+    <None Include="Google-Sans-Font\GoogleSans-Italic.ttf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Compile>
-    <Compile Include="Google-Sans-Font\GoogleSans-Medium.ttf">
+    </None>
+    <None Include="Google-Sans-Font\GoogleSans-Medium.ttf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Compile>
-    <Compile Include="Google-Sans-Font\GoogleSans-MediumItalic.ttf">
+    </None>
+    <None Include="Google-Sans-Font\GoogleSans-MediumItalic.ttf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Compile>
-    <Compile Include="Google-Sans-Font\GoogleSans-Regular.ttf">
+    </None>
+    <None Include="Google-Sans-Font\GoogleSans-Regular.ttf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Compile>
+    </None>
     <None Include="Info.plist">
       <SubType>Designer</SubType>
     </None>

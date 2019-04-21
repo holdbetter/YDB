@@ -1,4 +1,5 @@
 ﻿using YDB.Models;
+using YDB.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -11,10 +12,13 @@ namespace YDB.Views
     public partial class MainPage : MasterDetailPage
     {
         Dictionary<int, NavigationPage> MenuPages = new Dictionary<int, NavigationPage>();
+        public AuthenticationViewModel authentication;
 
         public MainPage()
         {
             MasterBehavior = MasterBehavior.Popover;
+
+            authentication = new AuthenticationViewModel();
 
             InitializeComponent();
 
