@@ -22,7 +22,7 @@ namespace YDB.Views
         MenuPageViewModel menuPageViewModel;
         ImageButton imageButton;
 
-        string username = "holdbetter";
+        //string username = "holdbetter";
 
         public StackLayout field1, field2;
         public ScrollView scr;

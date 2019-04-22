@@ -8,33 +8,18 @@ using YDB.Models;
 
 namespace YDB.Views
 {
-    [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class NewItemPage : ContentPage
     {
-        public Item Item { get; set; }
+        public WebView view;
 
-        public NewItemPage()
+        public NewItemPage(string request)
         {
-            InitializeComponent();
-
-            Item = new Item
+            view = new WebView()
             {
-                Text = "Item name",
-                Description = "This is an item description."
+                Source = request
             };
 
-            BindingContext = this;
-        }
-
-        async void Save_Clicked(object sender, EventArgs e)
-        {
-            MessagingCenter.Send(this, "AddItem", Item);
-            await Navigation.PopModalAsync();
-        }
-
-        async void Cancel_Clicked(object sender, EventArgs e)
-        {
-            await Navigation.PopModalAsync();
+            Content = view;
         }
     }
 }

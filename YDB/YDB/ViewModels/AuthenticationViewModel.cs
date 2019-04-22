@@ -49,8 +49,9 @@ namespace YDB.ViewModels
                 menu.youNotLogin.Text = "";
 
                 this.accessToken = await GetAccessToken(code);
-                menu.emptyList.FontSize = 5;
-                menu.emptyList.Text = accessToken;
+
+                //menu.emptyList.FontSize = 5;
+                menu.helloName.Text =  "Привет!\n" + await GetMailAddress(this.accessToken);
                 menu.scr.Content = menu.field2;
                 menu.Content = menu.scr;
             }
@@ -78,6 +79,18 @@ namespace YDB.ViewModels
             var newpeople = JsonConvert.DeserializeObject<TokenModel>(json);
 
             return newpeople.Access_token;
+        }
+
+        private async Task<string> GetMailAddress(string token)
+        {
+            HttpClient client = new HttpClient();
+
+            string request = "https://www.googleapis.com/plus/v1/people/me" + "?access_token=" + token;
+
+            HttpResponseMessage response = await client.GetAsync(request);
+            var json = await response.Content.ReadAsStringAsync();
+            GoogleProfileModel profile = JsonConvert.DeserializeObject<GoogleProfileModel>(json);
+            return profile.Emails[0].Value;
         }
     }
 }
