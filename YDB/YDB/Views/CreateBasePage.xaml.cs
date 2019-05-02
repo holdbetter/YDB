@@ -40,6 +40,8 @@ namespace YDB.Views
 
             #region Toolbar
             ToolbarItem toolbarItem = new ToolbarItem();
+            toolbarItem.Command = new Command(async() => { await Navigation.PushAsync(new BaseConstructorPage()); });
+
 
             if (Device.RuntimePlatform == Device.UWP)
             {

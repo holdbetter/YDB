@@ -157,7 +157,7 @@ namespace YDB.Views
                 VerticalOptions = LayoutOptions.CenterAndExpand,
                 HorizontalOptions = LayoutOptions.Center,
                 WidthRequest = 60,
-                HeightRequest = 60,
+                HeightRequest = 60
             };
             imageButton.Pressed += ImageButton_Clicked;
             imageButton.Released += ImageButton_Released;
