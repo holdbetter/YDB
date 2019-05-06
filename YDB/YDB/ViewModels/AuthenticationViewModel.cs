@@ -4,11 +4,13 @@ using System.Text;
 using System.ComponentModel;
 using Xamarin.Forms;
 using YDB.Views;
+using YDB.Services;
 using YDB.ViewModels;
 using YDB.Models;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.Net.Http;
+using System.Linq;
 
 namespace YDB.ViewModels
 {
@@ -33,6 +35,7 @@ namespace YDB.ViewModels
         {
             if (prop == "Uri" && Uri.Contains("code=") == true)
             {
+                #region Обработка auth кода
                 int pFrom = Uri.IndexOf("code=") + "code=".Length;
                 int pTo = Uri.LastIndexOf("&");
 
@@ -42,18 +45,54 @@ namespace YDB.ViewModels
 
                 string code = r.Substring(0, pFTo);
 
+                #endregion
+
                 MenuPage menu = (App.Current.MainPage as MainPage).Master as MenuPage;
 
                 menu.btnGo.IsVisible = false;
                 menu.hello.Text = "Загрузка...";
                 menu.youNotLogin.Text = "";
 
-                this.accessToken = await GetAccessToken(code);
+                //получение Token-информации
+                TokenModel tokenModel = await GetTokenInfo(code);
+                this.accessToken = tokenModel.Access_token;
+
+                //получение гугл-профиля
+                GoogleProfileModel googleProfile = await GetGoogleInfo(this.accessToken);
+
+                if (googleProfile != null && tokenModel != null)
+                {
+                    DbAccountModel dbAccountModel = new DbAccountModel()
+                    {
+                        Email = googleProfile.Emails[0].Value,
+                        GoogleNumbers = googleProfile.Id,
+                        TokenInfo = tokenModel
+                    };
+
+                    #region Добавление гугл-профиля в базу данных
+
+                    //var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok");
+
+                    //using (ApplicationContext db = new ApplicationContext(path))
+                    //{
+                    //    var ok = db.Database.EnsureCreated();
+
+                    //    if (true)
+                    //    {
+                    //        var list = db.Accounts.ToList();
+                    //    }
+
+                    //    db.Accounts.Add(dbAccountModel);
+                    //    db.SaveChanges();
+                    //}
+
+                    #endregion
+                }
 
                 //menu.emptyList.FontSize = 5;
-                menu.helloName.Text =  "Привет!\n" + await GetMailAddress(this.accessToken);
-                menu.scr.Content = menu.field2;
-                menu.Content = menu.scr;
+                menu.helloName.Text = "Привет!\n" + googleProfile.Emails[0].Value;
+                menu.scr1.Content = menu.field2;
+                menu.Content = menu.scr1;
             }
             else if (prop == "Uri" && Uri.Contains("code=") == false)
             {
@@ -64,7 +103,7 @@ namespace YDB.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
         }
 
-        private async Task<string> GetAccessToken(string code)
+        private async Task<TokenModel> GetTokenInfo(string code)
         {
             var request = App.AccessTokenUrl + "?code=" + code +
                 "&client_id=" + App.ClientId +
@@ -78,10 +117,10 @@ namespace YDB.ViewModels
             var json = await response.Content.ReadAsStringAsync();
             var newpeople = JsonConvert.DeserializeObject<TokenModel>(json);
 
-            return newpeople.Access_token;
+            return newpeople;
         }
 
-        private async Task<string> GetMailAddress(string token)
+        private async Task<GoogleProfileModel> GetGoogleInfo(string token)
         {
             HttpClient client = new HttpClient();
 
@@ -90,7 +129,7 @@ namespace YDB.ViewModels
             HttpResponseMessage response = await client.GetAsync(request);
             var json = await response.Content.ReadAsStringAsync();
             GoogleProfileModel profile = JsonConvert.DeserializeObject<GoogleProfileModel>(json);
-            return profile.Emails[0].Value;
+            return profile;
         }
     }
 }

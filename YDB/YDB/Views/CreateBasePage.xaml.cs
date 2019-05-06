@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
 using Xamarin.Forms;
-using Xamarin.Forms.Xaml;
+using YDB.Models;
 
 namespace YDB.Views
 {
-	[XamlCompilation(XamlCompilationOptions.Compile)]
 	public partial class CreateBasePage : ContentPage
 	{
         Label infoL, safetyL, markersL, nonPublic;
@@ -19,9 +17,16 @@ namespace YDB.Views
         ScrollView markerScroll;
         List<Entry> entriesOfInvitedId = new List<Entry>();
 
+        MarkerCustomView selectedMarker;
+
+        DbMenuListModel dbMenuListModel;
+
         public CreateBasePage ()
 		{
             MarkerCustomView.rllist.Clear();
+
+            //создается объект модели для будущего заполнения и добавления в БД
+            dbMenuListModel = new DbMenuListModel(); 
 
             Title = "Создание базы данных";
 
@@ -40,8 +45,48 @@ namespace YDB.Views
 
             #region Toolbar
             ToolbarItem toolbarItem = new ToolbarItem();
-            toolbarItem.Command = new Command(async() => { await Navigation.PushAsync(new BaseConstructorPage()); });
+            toolbarItem.Command = new Command(async() => 
+            {
+                toolbarItem.IsEnabled = false;
 
+                if (name.Text != null && name.Text != "")
+                {
+                    string text = name.Text.Trim();
+                    string firstLetter = text[0].ToString();
+                    dbMenuListModel.Name = (text.Remove(0, 1)).Insert(0, firstLetter.ToUpper());
+                }
+
+                dbMenuListModel.IsPrivate = isPublic.IsToggled;
+
+                if (dbMenuListModel.IsPrivate)
+                {
+                    List<int> usersId = new List<int>();
+
+                    foreach (Entry entry in entriesOfInvitedId)
+                    {
+                        if (entry.Text != null && entry.Text != "")
+                        {
+                            usersId.Add(Convert.ToInt32(entry.Text));
+                        }
+                    }
+
+                    dbMenuListModel.InvitedUsers = usersId;
+                }
+
+                System.Diagnostics.Debug.WriteLine(dbMenuListModel);
+
+                if (dbMenuListModel.Marker != null && dbMenuListModel.Name != "" && dbMenuListModel.Name != null)
+                {
+                    await Navigation.PushAsync(new BaseConstructorPage(dbMenuListModel));
+                }
+                else
+                {
+                    await DisplayAlert("Кажется вы что-то забыли",
+                        "Проверьте название базы и выбрали ли вы для неё маркер", "ОК");
+                }
+
+                toolbarItem.IsEnabled = true;
+            });
 
             if (Device.RuntimePlatform == Device.UWP)
             {
@@ -52,8 +97,6 @@ namespace YDB.Views
             {
                 toolbarItem.Icon = "checkMark.png";
             }
-
-            //toolbarItem.SetBinding(ToolbarItem.CommandProperty, "");
             ToolbarItems.Add(toolbarItem);
             #endregion
 
@@ -140,21 +183,21 @@ namespace YDB.Views
                 Orientation = StackOrientation.Horizontal,
                 Children =
                 {
-                    new MarkerCustomView(Color.Black, Color.FromHex("#edece8")),
-                    new MarkerCustomView(Color.White, Color.FromHex("#353535")),
-                    new MarkerCustomView(Color.FromHex("#ed4444"), Color.FromHex("#edece8")),
-                    new MarkerCustomView(Color.Lavender, Color.FromHex("#353535")),
-                    new MarkerCustomView(Color.FromHex("#9d70ff"), Color.FromHex("#edece8")),
-                    new MarkerCustomView(Color.PaleGoldenrod, Color.FromHex("#353535")),
-                    new MarkerCustomView(Color.Silver, Color.FromHex("#edece8")),
-                    new MarkerCustomView(Color.FromHex("#fff372"), Color.FromHex("#353535")),
-                    new MarkerCustomView(Color.FromHex("#59d8ff"), Color.FromHex("#edece8")),
-                    new MarkerCustomView(Color.FromHex("#ffcccc"), Color.FromHex("#353535")),
-                    new MarkerCustomView(Color.FromHex("#afa100"), Color.FromHex("#edece8")),
-                    new MarkerCustomView(Color.FromHex("#a29bfe"), Color.FromHex("#353535")),
-                    new MarkerCustomView(Color.FromHex("#05c46b"), Color.FromHex("#edece8")),
-                    new MarkerCustomView(Color.FromHex("#fffa65"), Color.FromHex("#353535")),
-                    new MarkerCustomView(Color.FromHex("#cd84f1"), Color.FromHex("#edece8")),
+                    new MarkerCustomView("#000000", Color.FromHex("#edece8"), IsMarkedCheck),
+                    new MarkerCustomView("#ffffff", Color.FromHex("#353535"), IsMarkedCheck),
+                    new MarkerCustomView("#ed4444", Color.FromHex("#edece8"), IsMarkedCheck),
+                    new MarkerCustomView("#e6e6fa", Color.FromHex("#353535"), IsMarkedCheck),
+                    new MarkerCustomView("#9d70ff", Color.FromHex("#edece8"), IsMarkedCheck),
+                    new MarkerCustomView("#eee8aa", Color.FromHex("#353535"), IsMarkedCheck),
+                    new MarkerCustomView("#c0c0c0", Color.FromHex("#edece8"), IsMarkedCheck),
+                    new MarkerCustomView("#fff372", Color.FromHex("#353535"), IsMarkedCheck),
+                    new MarkerCustomView("#59d8ff", Color.FromHex("#edece8"), IsMarkedCheck),
+                    new MarkerCustomView("#ffcccc", Color.FromHex("#353535"), IsMarkedCheck),
+                    new MarkerCustomView("#afa100", Color.FromHex("#edece8"), IsMarkedCheck),
+                    new MarkerCustomView("#a29bfe", Color.FromHex("#353535"), IsMarkedCheck),
+                    new MarkerCustomView("#05c46b", Color.FromHex("#edece8"), IsMarkedCheck),
+                    new MarkerCustomView("#fffa65", Color.FromHex("#353535"), IsMarkedCheck),
+                    new MarkerCustomView("#cd84f1", Color.FromHex("#edece8"), IsMarkedCheck),
                 } //markers
             }; //Стэк маркеров
 
@@ -268,6 +311,17 @@ namespace YDB.Views
                 }
 
                 entriesOfInvitedId.Clear();
+            }
+        }
+
+        private void IsMarkedCheck()
+        {
+            foreach (MarkerCustomView item in markersStack.Children)
+            {
+                if (item.Marked)
+                {
+                    dbMenuListModel.Marker = item;
+                }
             }
         }
     }

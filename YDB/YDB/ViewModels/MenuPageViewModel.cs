@@ -6,16 +6,21 @@ using System.Windows.Input;
 using Xamarin.Forms;
 using YDB.Views;
 using YDB.Services;
+using YDB.Models;
+using System.Collections.ObjectModel;
 
 namespace YDB.ViewModels
 {
-    class MenuPageViewModel
+    public class MenuPageViewModel
     {
         public ICommand EnterInAppBtn { get; }
         public ICommand BaseCreateButton { get; }
+        public ObservableCollection<DbMenuListModel> DbList { get; set; }
 
         public MenuPageViewModel()
         {
+            DbList = new ObservableCollection<DbMenuListModel>();
+
             EnterInAppBtn = new Command(() =>
             {
                 string authRequest = App.AuthorizeUrl + 

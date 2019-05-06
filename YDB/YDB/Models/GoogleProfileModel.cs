@@ -12,15 +12,17 @@ namespace YDB.Models
         public Name Name;
         [DataMember]
         public Emails[] Emails;
+        [DataMember]
+        public string Id;
     }
 
-    struct Name
+    class Name
     {
         public string GivenName;
         string FamilyName;
     }
 
-    struct Emails
+    class Emails
     {
         public string Value;
         string Type;

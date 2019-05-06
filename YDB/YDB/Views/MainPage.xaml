@@ -11,7 +11,7 @@
     <MasterDetailPage.Detail>
         <NavigationPage>
             <x:Arguments>
-                <views:AboutPage/>
+                <views:CreateBasePage/>
             </x:Arguments>
         </NavigationPage>
     </MasterDetailPage.Detail>

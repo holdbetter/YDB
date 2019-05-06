@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.Serialization;
 using System.Text;
 
@@ -9,16 +11,17 @@ namespace YDB.Models
     public class TokenModel
     {
         [DataMember]
+        [Key]
         public string Access_token { get; set; }
         [DataMember]
-        string Id_token { get; set; }
+        public string Id_token { get; set; }
         [DataMember]
-        int Expires_in { get; set; }
+        public int Expires_in { get; set; }
         [DataMember]
-        string Token_type { get; set; }
+        public string Token_type { get; set; }
         [DataMember]
-        string Scope { get; set; }
+        public string Scope { get; set; }
         [DataMember]
-        string Refresh_Token { get; set; }
+        public string Refresh_Token { get; set; }
     }
 }

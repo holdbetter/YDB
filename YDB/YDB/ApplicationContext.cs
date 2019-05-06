@@ -10,7 +10,7 @@ namespace YDB
     {
         private string _databasePath;
 
-        public DbSet<DynamicDataBaseModel> Friends { get; set; }
+        public DbSet<DbAccountModel> Accounts { get; set; }
 
         public ApplicationContext(string databasePath)
         {
@@ -20,6 +20,7 @@ namespace YDB
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlite($"Filename={_databasePath}");
+            //optionsBuilder.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=helloappdb;Trusted_Connection=True;");
         }
     }
 }

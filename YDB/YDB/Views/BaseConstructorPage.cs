@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Text;
 using Xamarin.Forms;
+using YDB.Models;
 
 namespace YDB.Views
 {
@@ -25,8 +26,7 @@ namespace YDB.Views
             }
         }
 
-
-        public BaseConstructorPage()
+        public BaseConstructorPage(DbMenuListModel dbMenuListModel)
         {
             FieldCustomView.score = 0;
             Title = "Создайте поля";
@@ -34,36 +34,63 @@ namespace YDB.Views
             #region Toolbar
 
             ToolbarItem add = new ToolbarItem();
-            add.Command = new Command(async () => {
+            add.Command = new Command(async () => 
+            {
+                add.IsEnabled = false;
 
-                var dictionary = new Dictionary<string, Object>();
+                bool response = await DisplayAlert("Вы уверены?", 
+                    "Пожалуйста, проверьте все введенные данные", "Продолжить", "Проверить данные");
 
-                for (int i = 0; i < main.Children.Count - 1; i++) //last is Add button
+                if (response)
                 {
-                    FieldCustomView frame = main.Children[0] as FieldCustomView;
+                    MenuPage menuPage = (App.Current.MainPage as MainPage).Master as MenuPage;
 
-                    Type type = null;
-
-                    switch (frame.picker.Text)
+                    if (menuPage.menuPageViewModel.DbList.Count == 0)
                     {
-                        case "Текст":
-                            type = typeof(string);
-                            break;
-                        case "Число":
-                            type = typeof(int);
-                            break;
-                        case "Номер телефона":
-                            type = typeof(int);
-                            break;
+                        menuPage.field2.Children.Remove(menuPage.emptyDBView2);
+                        menuPage.field2.Children.Add(menuPage.field3);
                     }
 
-                    dictionary.Add(frame.name.Text, type);
+                    menuPage.menuPageViewModel.DbList.Add(dbMenuListModel);
+
+                    NavigationPage np = new NavigationPage(new CreateBasePage())
+                    {
+                        BarBackgroundColor = Color.FromHex("#d83434")
+                    };
+
+                    (App.Current.MainPage as MainPage).Detail = np;
+
                 }
 
-                await Navigation.PushAsync(new Page());
+                add.IsEnabled = true;
+
+                //var dictionary = new Dictionary<string, Object>();
+
+                //for (int i = 0; i < main.Children.Count - 1; i++) //last is Add button
+                //{
+                //    FieldCustomView frame = main.Children[0] as FieldCustomView;
+
+                //    Type type = null;
+
+                //    switch (frame.picker.Text)
+                //    {
+                //        case "Текст":
+                //            type = typeof(string);
+                //            break;
+                //        case "Число":
+                //            type = typeof(int);
+                //            break;
+                //        case "Номер телефона":
+                //            type = typeof(int);
+                //            break;
+                //    }
+
+                //    dictionary.Add(frame.name.Text, type);
+                //}
+
+                //await Navigation.PushAsync(new Page());
 
             });
-            add.Order = ToolbarItemOrder.Primary;
 
             if (Device.RuntimePlatform == Device.UWP)
             {

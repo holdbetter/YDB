@@ -5,6 +5,7 @@ using System.Collections.Generic;
 
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
+using System.Threading.Tasks;
 
 namespace YDB.Views
 {
@@ -12,20 +13,19 @@ namespace YDB.Views
     public partial class MenuPage : ContentPage
     {
         MainPage RootPage { get => Application.Current.MainPage as MainPage; }
-        List<HomeMenuItem> menuItems;
-        ListView masterView;
+        public MenuPageViewModel menuPageViewModel;
+
+        ListView DbListView, createView;
         public Label hello, youNotLogin;
         public Label helloName, emptyList;
-        StackLayout nonLoginView1, nonLoginView2;
-        StackLayout emptyDBView1, emptyDBView2, DBListView;
         public Button btnGo;
-        MenuPageViewModel menuPageViewModel;
+        
         ImageButton imageButton;
 
-        //string username = "holdbetter";
-
-        public StackLayout field1, field2;
-        public ScrollView scr;
+        StackLayout nonLoginView1, nonLoginView2;
+        public StackLayout emptyDBView1, emptyDBView2, DbStackListView;
+        public StackLayout field1, field2, field3;
+        public ScrollView scr1;
 
         public MenuPage()
         {
@@ -170,15 +170,157 @@ namespace YDB.Views
 
             field2.Children.Add(emptyDBView1);
             field2.Children.Add(emptyDBView2);
-
             #endregion
 
-            scr = new ScrollView
+            #region field3
+
+            createView = new ListView()
+            {
+                ItemsSource = new List<EmptyModel>() { new EmptyModel() },
+                Margin = new Thickness(0, -5, 0, 0),
+                HasUnevenRows = false,
+                SeparatorVisibility = SeparatorVisibility.None,
+                RowHeight = 55,
+                VerticalOptions = LayoutOptions.Start,
+                ItemTemplate = new DataTemplate(() =>
+                {
+                    ViewCell viewCell = new ViewCell()
+                    {
+                        View = new StackLayout()
+                        {
+                            Orientation = StackOrientation.Horizontal,
+                            Padding = new Thickness(25, 0),
+                            HeightRequest = 55,
+                            Children =
+                            {
+                                new Image()
+                                {
+                                    WidthRequest = 30,
+                                    HeightRequest = 30,
+                                    Source = "btnAddImg.png"
+                                },
+                                new Label()
+                                {
+                                    Margin = new Thickness(15, 0, 0, 0),
+                                    FontFamily = App.fontNameRegular,
+                                    VerticalTextAlignment = TextAlignment.Center,
+                                    FontSize = Device.GetNamedSize(NamedSize.Medium, typeof(Label)),
+                                    TextColor = Color.Black,
+                                    Text = "Создать"
+                                }
+                            }
+                        }
+                    };
+                    return viewCell;
+                })
+            };
+            createView.ItemSelected += CreateView_ItemSelected;
+            createView.ItemTapped += CreateView_ItemTapped;
+
+            DbListView = new ListView()
+            {
+                Margin = new Thickness(0, -5, 0, 0),
+                HasUnevenRows = false,
+                SeparatorVisibility = SeparatorVisibility.None,
+                RowHeight = 55,
+                ItemTemplate = new DataTemplate(() =>
+                {
+                    Button button = new Button()
+                    {
+                        BorderColor = Color.Gray,
+                        BorderWidth = 0.5,
+                        AnchorX = 0.5,
+                        AnchorY = 0.5,
+                        WidthRequest = 30,
+                        HeightRequest = 30,
+                        CornerRadius = 100,
+                        IsEnabled = false,
+                        VerticalOptions = LayoutOptions.Center,
+                        HorizontalOptions = LayoutOptions.Center
+                    };
+                    button.SetBinding(Button.BackgroundColorProperty, "MarkerColor");
+
+                    Label label = new Label()
+                    {
+                        Margin = new Thickness(15, 0, 0, 0),
+                        FontFamily = App.fontNameRegular,
+                        VerticalTextAlignment = TextAlignment.Center,
+                        FontSize = Device.GetNamedSize(NamedSize.Medium, typeof(Label)),
+                        TextColor = Color.Black,
+                    };
+                    label.SetBinding(Label.TextProperty, "Name");
+
+                    return new ViewCell()
+                    {
+                        View = new StackLayout
+                        {
+                            VerticalOptions = LayoutOptions.Center,
+                            Padding = new Thickness(25, 0),
+                            Orientation = StackOrientation.Horizontal,
+                            Children =
+                            {
+                                button,
+                                label
+                            }
+                        }
+                    };
+                })
+            };
+            DbListView.SetBinding(ListView.ItemsSourceProperty, "DbList");
+            DbListView.ItemSelected += DbListView_ItemSelected;
+
+            field3 = new StackLayout()
+            {
+                VerticalOptions = LayoutOptions.FillAndExpand,
+                Children =
+                {
+                    createView,
+                    new BoxView()
+                    {
+                        Margin = new Thickness(0, -5, 0, 0),
+                        HeightRequest = 0.5,
+                        HorizontalOptions = LayoutOptions.Fill,
+                        BackgroundColor = Color.Gray
+                    },
+                    DbListView
+                }
+            };
+
+            #endregion
+            scr1 = new ScrollView
             {
                 Content = field1
             };
 
-            Content = scr;
+            Content = scr1;
+        }
+
+        private async void CreateView_ItemTapped(object sender, ItemTappedEventArgs e)
+        {
+            NavigationPage page = (App.Current.MainPage as MainPage).Detail as NavigationPage;
+
+            if (!(page.CurrentPage is CreateBasePage))
+            {
+                (App.Current.MainPage as MainPage).Detail = new NavigationPage(new CreateBasePage())
+                {
+                    BarBackgroundColor = Color.FromHex("#d83434"),
+                };
+
+                if (Device.RuntimePlatform == Device.Android)
+                    await Task.Delay(100);
+            }
+
+            (App.Current.MainPage as MainPage).IsPresented = false;
+        }
+
+        private void CreateView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
+        {
+            ((ListView)sender).SelectedItem = null;
+        }
+
+        private void DbListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
+        {
+            ((ListView)sender).SelectedItem = null;
         }
 
         private void ImageButton_Released(object sender, EventArgs e)
