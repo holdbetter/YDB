@@ -13,6 +13,10 @@ namespace YDB
         public static string ClientId = "502847541706-pkqrpuul246ud4hdp524a1ae8bj00qki.apps.googleusercontent.com";
         public static string RedirectUrl = "com.googleusercontent.apps.502847541706-pkqrpuul246ud4hdp524a1ae8bj00qki:/oauth2redirect";
 
+        public static string ClientIdUWP = "502847541706-nagh31q7mr5jvnrlu25kujfjt77mglo6.apps.googleusercontent.com";
+        public static string RedirectUrlUWP = "https://google.com";
+        public static string ClientSecretUWP = "eQIje61NJbMZcZ5tC8JfbrKV";
+
         //Links
         public static string Scope = "https://www.googleapis.com/auth/userinfo.email";
         public static string AuthorizeUrl = "https://accounts.google.com/o/oauth2/v2/auth";

@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Xamarin.Forms;
+using YDB.Models;
 using YDB.Views;
 using YDB.Services;
-using YDB.Models;
-using System.Collections.ObjectModel;
 
 namespace YDB.ViewModels
 {
@@ -23,14 +24,21 @@ namespace YDB.ViewModels
 
             EnterInAppBtn = new Command(() =>
             {
-                string authRequest = App.AuthorizeUrl + 
+                if (Device.RuntimePlatform == Device.UWP)
+                {
+                    DependencyService.Get<IUwpLoginRequest>().StartRequestAndGetResults();
+                }
+                else
+                {
+                    string authRequest = App.AuthorizeUrl +
                     "?redirect_uri=" + App.RedirectUrl +
                     "&prompt=consent" +
                     "&response_type=code" +
                     "&client_id=" + App.ClientId +
                     "&scope=" + App.Scope;
 
-                Device.OpenUri(new Uri(authRequest));
+                    Device.OpenUri(new Uri(authRequest));
+                }
             });
 
             BaseCreateButton = new Command(async () =>

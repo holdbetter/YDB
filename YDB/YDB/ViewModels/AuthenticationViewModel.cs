@@ -105,31 +105,65 @@ namespace YDB.ViewModels
 
         private async Task<TokenModel> GetTokenInfo(string code)
         {
-            var request = App.AccessTokenUrl + "?code=" + code +
+            if (Device.RuntimePlatform == Device.UWP)
+            {
+                var request = App.AccessTokenUrl + "?code=" + code +
+                "&client_id=" + App.ClientIdUWP +
+                "&client_secret=" + App.ClientSecretUWP +
+                "&redirect_uri=" + App.RedirectUrlUWP +
+                "&grant_type=authorization_code";
+
+                HttpClient httpClient = new HttpClient();
+
+                HttpResponseMessage response = await httpClient.PostAsync(request, null);
+                var json = await response.Content.ReadAsStringAsync();
+                var tokenModel = JsonConvert.DeserializeObject<TokenModel>(json);
+
+                return tokenModel;
+            }
+            else
+            {
+                var request = App.AccessTokenUrl + "?code=" + code +
                 "&client_id=" + App.ClientId +
                 "&client_secret=" +
                 "&redirect_uri=" + App.RedirectUrl +
                 "&grant_type=authorization_code";
 
-            HttpClient httpClient = new HttpClient();
+                HttpClient httpClient = new HttpClient();
 
-            HttpResponseMessage response = await httpClient.PostAsync(request, null);
-            var json = await response.Content.ReadAsStringAsync();
-            var newpeople = JsonConvert.DeserializeObject<TokenModel>(json);
+                HttpResponseMessage response = await httpClient.PostAsync(request, null);
+                var json = await response.Content.ReadAsStringAsync();
+                var tokenModel = JsonConvert.DeserializeObject<TokenModel>(json);
 
-            return newpeople;
+                return tokenModel;
+            }
         }
 
         private async Task<GoogleProfileModel> GetGoogleInfo(string token)
         {
-            HttpClient client = new HttpClient();
+            if (Device.RuntimePlatform == Device.UWP)
+            {
+                HttpClient client = new HttpClient();
 
-            string request = "https://www.googleapis.com/plus/v1/people/me" + "?access_token=" + token;
+                string request = "https://www.googleapis.com/plus/v1/people/me" + "?access_token=" + token;
 
-            HttpResponseMessage response = await client.GetAsync(request);
-            var json = await response.Content.ReadAsStringAsync();
-            GoogleProfileModel profile = JsonConvert.DeserializeObject<GoogleProfileModel>(json);
-            return profile;
+                HttpResponseMessage response = await client.GetAsync(request);
+                var json = await response.Content.ReadAsStringAsync();
+                GoogleProfileModel profile = JsonConvert.DeserializeObject<GoogleProfileModel>(json);
+                return profile;
+            }
+            else
+            {
+                HttpClient client = new HttpClient();
+
+                string request = "https://www.googleapis.com/plus/v1/people/me" + "?access_token=" + token;
+
+                HttpResponseMessage response = await client.GetAsync(request);
+                var json = await response.Content.ReadAsStringAsync();
+                GoogleProfileModel profile = JsonConvert.DeserializeObject<GoogleProfileModel>(json);
+                return profile;
+            }
+
         }
     }
 }

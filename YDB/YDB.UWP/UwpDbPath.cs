@@ -8,6 +8,7 @@ using YDB.UWP;
 using System.IO;
 using Xamarin.Forms;
 using Windows.Storage;
+using Windows.Security.Authentication.Web;
 
 [assembly: Dependency(typeof(UwpDbPath))]
 namespace YDB.UWP
