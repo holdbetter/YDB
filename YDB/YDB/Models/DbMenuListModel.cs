@@ -5,6 +5,7 @@ using YDB.Views;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using Xamarin.Forms;
+using System.ComponentModel.DataAnnotations;
 
 namespace YDB.Models
 {
@@ -18,6 +19,21 @@ namespace YDB.Models
         public string Name { get; set; }
         public string HexColor { get; set; }
         public bool IsPrivate { get; set; }
+        public string Carrier { get; set; } //владелец
+        public DatabaseData DatabaseData { get; set; }
+        public List<UsersDatabases> UsersDatabases { get; set; }
+
+        //public int DbAccountModelId { get; set; }
+        //public DbAccountModel DbAccountModel { get; set; }
+
+        public DbMenuListModel()
+        {
+            DatabaseData = new DatabaseData();
+
+            UsersDatabases = new List<UsersDatabases>();
+        }
+
+        [NotMapped]
         public List<int> InvitedUsers
         {
             get
@@ -58,5 +74,56 @@ namespace YDB.Models
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
         }
+    }
+
+    public class InvitedUsers
+    {
+        public int Id { get; set; }
+        public int UserNumber { get; set; }
+
+        public string DbMenuListModelName { get; set; }
+        public DbMenuListModel DbMenuListModel { get; set; }
+    }
+
+    public class DatabaseData
+    {
+        public int Id { get; set; }
+        public string DatabaseName { get; set; }
+        
+        public DatabaseData()
+        {
+            Data = new List<KeysAndTypes>();
+        }
+
+        public List<KeysAndTypes> Data { get; set; }
+    }
+
+    public class KeysAndTypes
+    {
+        public int Id { get; set; }
+        public string Key { get; set; }
+        public string Type { get; set; }
+
+        public int DatabaseDataId { get; set; }
+        public DatabaseData DatabaseData { get; set; }
+
+        public KeysAndTypes(string key, string type)
+        {
+            Key = key;
+            Type = type;
+
+            Values = new List<Values>();
+        }
+
+        public List<Values> Values { get; set; }
+    }
+
+    public class Values
+    {
+        public int Id { get; set; }
+        public string Value { get; set; }
+
+        public int KeysAndTypesId { get; set; }
+        public KeysAndTypes KeysAndTypes { get; set; }
     }
 }

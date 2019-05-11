@@ -80,7 +80,6 @@ namespace YDB.Views
 
             main.Content = frameStack;
             Content = main;
-            score++;
         }
 
         private void DeleteBtn_Released(object sender, EventArgs e)

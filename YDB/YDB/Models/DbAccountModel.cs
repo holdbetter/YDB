@@ -13,5 +13,12 @@ namespace YDB.Models
         public string Email { get; set; }
         public string GoogleNumbers { get; set; }
         public TokenModel TokenInfo { get; set; }
+
+        public List<UsersDatabases> UsersDatabases { get; set; }
+
+        public DbAccountModel()
+        {
+            UsersDatabases = new List<UsersDatabases>();
+        }
     }
 }

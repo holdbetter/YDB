@@ -106,8 +106,9 @@
     </AppxManifest>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="btnAddImgUWP.png" />
+    <Content Include="btnAddImg.png" />
     <Content Include="database.png" />
+    <Content Include="edit.png" />
     <Content Include="iconPressed.png" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LargeTile.scale-100.png" />
@@ -138,6 +139,7 @@
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
     <Content Include="Assets\Wide310x150Logo.scale-400.png" />
     <Content Include="checkMark.png" />
+    <Content Include="view.png" />
     <Content Include="xamarin_logo.png" />
     <Content Include="add.png" />
     <Content Include="save.png" />

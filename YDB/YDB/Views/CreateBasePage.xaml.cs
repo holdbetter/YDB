@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xamarin.Forms;
 using YDB.Models;
+using YDB.Services;
 
 namespace YDB.Views
 {
@@ -26,7 +27,7 @@ namespace YDB.Views
             MarkerCustomView.rllist.Clear();
 
             //создается объект модели для будущего заполнения и добавления в БД
-            dbMenuListModel = new DbMenuListModel(); 
+            dbMenuListModel = new DbMenuListModel() { Carrier = App.Gmail } ;
 
             Title = "Создание базы данных";
 
@@ -66,14 +67,13 @@ namespace YDB.Views
                     {
                         if (entry.Text != null && entry.Text != "")
                         {
+                            //usersId.Add(new InvitedUsers() { UserNumber = Convert.ToInt32(entry.Text) });
                             usersId.Add(Convert.ToInt32(entry.Text));
                         }
                     }
 
                     dbMenuListModel.InvitedUsers = usersId;
                 }
-
-                System.Diagnostics.Debug.WriteLine(dbMenuListModel);
 
                 if (dbMenuListModel.Marker != null && dbMenuListModel.Name != "" && dbMenuListModel.Name != null)
                 {
@@ -256,6 +256,18 @@ namespace YDB.Views
             };
             Content = scroll;
 		}
+
+        private static string GetCarrier(string gmail)
+        {
+            var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok2.db");
+
+            using (ApplicationContext db = new ApplicationContext(path))
+            {
+                return (from account in db.Accounts
+                        where account.Email == gmail
+                        select account).FirstOrDefault().Email;
+            }
+        }
 
         private void IsPublic_Toggled(object sender, ToggledEventArgs e)
         {

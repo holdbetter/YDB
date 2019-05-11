@@ -17,6 +17,7 @@ namespace YDB.UWP
     {
         public string GetDataBasePath(string sqliteFilename)
         {
+            //System.Diagnostics.Debug.WriteLine(Path.Combine(ApplicationData.Current.LocalFolder.Path, sqliteFilename));
             return Path.Combine(ApplicationData.Current.LocalFolder.Path, sqliteFilename);
         }
     }

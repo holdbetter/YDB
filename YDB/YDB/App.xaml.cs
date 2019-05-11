@@ -38,6 +38,9 @@ namespace YDB
             Device.RuntimePlatform == Device.iOS ? "GoogleSans-Regular" :
             Device.RuntimePlatform == Device.UWP ? "Assets/Fonts/GoogleSans-Regular.ttf#Google Sans" : null;
 
+        public static string Gmail;
+
+
         public App()
         {
             InitializeComponent();

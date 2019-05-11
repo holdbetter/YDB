@@ -4,6 +4,9 @@ using System.Dynamic;
 using System.Text;
 using Xamarin.Forms;
 using YDB.Models;
+using YDB.Services;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace YDB.Views
 {
@@ -43,6 +46,7 @@ namespace YDB.Views
 
                 if (response)
                 {
+                    bool DatabaseIsOk = true;
                     MenuPage menuPage = (App.Current.MainPage as MainPage).Master as MenuPage;
 
                     if (menuPage.menuPageViewModel.DbList.Count == 0)
@@ -51,45 +55,115 @@ namespace YDB.Views
                         menuPage.field2.Children.Add(menuPage.field3);
                     }
 
-                    menuPage.menuPageViewModel.DbList.Add(dbMenuListModel);
-
                     NavigationPage np = new NavigationPage(new CreateBasePage())
                     {
                         BarBackgroundColor = Color.FromHex("#d83434")
                     };
 
-                    (App.Current.MainPage as MainPage).Detail = np;
+                    var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok2.db");
 
+                    using (ApplicationContext db = new ApplicationContext(path))
+                    {
+                        //var list = db.Accounts.Include(p => p.DbMenuListModels).ToList();
+
+                        List<KeysAndTypes> keysAndTypes = new List<KeysAndTypes>();
+
+                        if (main.Children.Count != 0)
+                        {
+                            foreach (var item in main.Children)
+                            {
+                                if (item is FieldCustomView)
+                                {
+                                    FieldCustomView field = item as FieldCustomView;
+
+                                    string type = "";
+
+                                    if (field.picker.Text != null)
+                                    {
+                                        switch (field.picker.Text)
+                                        {
+                                            case "Текст":
+                                                type = "Текст";
+                                                break;
+                                            case "Номер телефона":
+                                                type = "Номер телефона";
+                                                break;
+                                            case "Число":
+                                                type = "Число";
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        DatabaseIsOk = false;
+                                        await DisplayAlert("Возникла проблема", "Не указан тип данных", "ОК");
+                                        break;
+                                    }
+
+                                    int problem = 0;
+                                    foreach (var compareItem in main.Children)
+                                    {
+                                        if (compareItem is FieldCustomView)
+                                        {
+                                            FieldCustomView field2 = compareItem as FieldCustomView;
+
+                                            if (field.name.Text == field2.name.Text)
+                                            {
+                                                problem++;
+
+                                                if (problem == 2)
+                                                {
+                                                    DatabaseIsOk = false;
+                                                    await DisplayAlert("Возникла проблема", "Имена полей не должны совпадать", "ОК");
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    if (problem == 1)
+                                    {
+                                        keysAndTypes.Add(new KeysAndTypes(field.name.Text, type) {
+                                            DatabaseData = dbMenuListModel.DatabaseData });
+                                    }
+                                }
+                            }
+                        }
+
+                        if (DatabaseIsOk)
+                        {
+                            dbMenuListModel.DatabaseData.DatabaseName = dbMenuListModel.Name;
+                            dbMenuListModel.DatabaseData.Data = keysAndTypes;
+
+                            foreach (var item in db.Accounts.ToList())
+                            {
+                                if (App.Gmail == item.Email)
+                                {
+                                    item.UsersDatabases.Add(new UsersDatabases()
+                                    {
+                                        DbMenuListModel = dbMenuListModel,
+                                        DbAccountModel = item
+                                    });
+                                }
+                            }
+
+                            db.DatabasesList.Add(dbMenuListModel);
+                            db.SaveChanges();
+                        }
+                    }
+
+                    //добавление базы в ListView
+                    if (DatabaseIsOk)
+                    {
+                        menuPage.menuPageViewModel.DbList.Add(dbMenuListModel);
+
+                        (App.Current.MainPage as MainPage).Detail = np;
+                    }
                 }
 
                 add.IsEnabled = true;
-
-                //var dictionary = new Dictionary<string, Object>();
-
-                //for (int i = 0; i < main.Children.Count - 1; i++) //last is Add button
-                //{
-                //    FieldCustomView frame = main.Children[0] as FieldCustomView;
-
-                //    Type type = null;
-
-                //    switch (frame.picker.Text)
-                //    {
-                //        case "Текст":
-                //            type = typeof(string);
-                //            break;
-                //        case "Число":
-                //            type = typeof(int);
-                //            break;
-                //        case "Номер телефона":
-                //            type = typeof(int);
-                //            break;
-                //    }
-
-                //    dictionary.Add(frame.name.Text, type);
-                //}
-
-                //await Navigation.PushAsync(new Page());
-
             });
 
             if (Device.RuntimePlatform == Device.UWP)
@@ -124,12 +198,15 @@ namespace YDB.Views
                         Command = new Command(() => {
                             main.Children.Insert(main.Children.Count == 1 ? 0 : main.Children.Count - 1, 
                             new FieldCustomView(TapGestureRecognizer_Tapped, DeleteBtnReleaseV2));
+                            FieldCustomView.score++;
                         }),
                         HorizontalOptions = LayoutOptions.FillAndExpand,
                         CornerRadius = 5
                     }
                 }
             };
+            FieldCustomView.score++;
+
 
             SwipeGestureRecognizer swipeGesture = new SwipeGestureRecognizer()
             {
@@ -161,9 +238,9 @@ namespace YDB.Views
 
             if (x)
             {
-                FieldCustomView.score--;
                 int get = Convert.ToInt32(((sender as Button).Parent.Parent.Parent as FieldCustomView).ClassId);
                 ((sender as Button).Parent.Parent.Parent.Parent.Parent.Parent as BaseConstructorPage).ButtonId = get;
+                FieldCustomView.score--;
             }
         }
 

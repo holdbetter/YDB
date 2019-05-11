@@ -33,7 +33,7 @@ namespace YDB.ViewModels
 
         public async void OnPropertyChanged(string prop = "")
         {
-            if (prop == "Uri" && Uri.Contains("code=") == true)
+            if (Uri != null && prop == "Uri" && Uri.Contains("code=") == true)
             {
                 #region Обработка auth кода
                 int pFrom = Uri.IndexOf("code=") + "code=".Length;
@@ -71,20 +71,19 @@ namespace YDB.ViewModels
 
                     #region Добавление гугл-профиля в базу данных
 
-                    //var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok");
+                    var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok2.db");
 
-                    //using (ApplicationContext db = new ApplicationContext(path))
-                    //{
-                    //    var ok = db.Database.EnsureCreated();
+                    //if (такого мейла в базе нет) => *СОЗДАНИЕ и добавление* 
+                    //else if (если мейл есть, ноне все данные (кроме мейла) совпадают) => *редактирование*
+                    //else |когда все совпадает| нич не делаем
 
-                    //    if (true)
-                    //    {
-                    //        var list = db.Accounts.ToList();
-                    //    }
+                    App.Gmail = dbAccountModel.Email;
 
-                    //    db.Accounts.Add(dbAccountModel);
-                    //    db.SaveChanges();
-                    //}
+                    using (ApplicationContext db = new ApplicationContext(path))
+                    {
+                        db.Accounts.Add(dbAccountModel);
+                        db.SaveChanges();
+                    }
 
                     #endregion
                 }
@@ -94,7 +93,7 @@ namespace YDB.ViewModels
                 menu.scr1.Content = menu.field2;
                 menu.Content = menu.scr1;
             }
-            else if (prop == "Uri" && Uri.Contains("code=") == false)
+            else if (Uri != null && prop == "Uri" && Uri.Contains("code=") == false)
             {
                 MainPage current = App.Current.MainPage as MainPage;
                 await current.DisplayAlert("Упс!", "Вы не вошли в аккаунт", "ОК");

@@ -6,10 +6,12 @@ using System.Collections.Generic;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 using System.Threading.Tasks;
+using YDB.Services;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace YDB.Views
 {
-    [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class MenuPage : ContentPage
     {
         MainPage RootPage { get => Application.Current.MainPage as MainPage; }
@@ -133,7 +135,9 @@ namespace YDB.Views
                 VerticalOptions = LayoutOptions.EndAndExpand,
                 Text = $"Привет!",
                 FontFamily = App.fontNameBold,
-                FontSize = Device.GetNamedSize(NamedSize.Large, typeof(Label)),
+                FontSize = Device.RuntimePlatform == Device.UWP ?
+                    Device.GetNamedSize(NamedSize.Small, typeof(Label)) :
+                    Device.GetNamedSize(NamedSize.Large, typeof(Label)),
                 TextColor = Color.White
             };
 
@@ -152,7 +156,7 @@ namespace YDB.Views
             imageButton = new ImageButton()
             {
                 Margin = new Thickness(0, 15, 0, 0),
-                Source = Device.RuntimePlatform == Device.UWP ? "btnAddImgUWP.png" : "btnAddImg.png",
+                Source = Device.RuntimePlatform == Device.UWP ? "btnAddImg.png" : "btnAddImg.png",
                 BackgroundColor = Color.Transparent,
                 VerticalOptions = LayoutOptions.CenterAndExpand,
                 HorizontalOptions = LayoutOptions.Center,
@@ -234,7 +238,7 @@ namespace YDB.Views
                         WidthRequest = 30,
                         HeightRequest = 30,
                         CornerRadius = 100,
-                        IsEnabled = false,
+                        IsEnabled = Device.RuntimePlatform == Device.UWP ? true : false,
                         VerticalOptions = LayoutOptions.Center,
                         HorizontalOptions = LayoutOptions.Center
                     };
@@ -268,6 +272,7 @@ namespace YDB.Views
             };
             DbListView.SetBinding(ListView.ItemsSourceProperty, "DbList");
             DbListView.ItemSelected += DbListView_ItemSelected;
+            DbListView.ItemTapped += DbListView_ItemTapped;
 
             field3 = new StackLayout()
             {
@@ -287,12 +292,40 @@ namespace YDB.Views
             };
 
             #endregion
+
             scr1 = new ScrollView
             {
                 Content = field1
             };
 
             Content = scr1;
+        }
+
+        private void DbListView_ItemTapped(object sender, ItemTappedEventArgs e)
+        {
+            var item = e.Item as DbMenuListModel;
+            
+
+            var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok2.db");
+
+            using (ApplicationContext db = new ApplicationContext(path))
+            {
+                var obj = (from database in db.DatabasesList
+                           .Include(m => m.DatabaseData).ThenInclude(ub => ub.Data)
+                           .Include(m => m.UsersDatabases)
+                           .ToList()
+                           where database.Id == item.Id
+                           select database).FirstOrDefault();
+
+                DatabaseViewPage dataViewPage = new DatabaseViewPage(obj);
+
+                (App.Current.MainPage as MainPage).Detail = new NavigationPage(new DatabaseMenuPage(obj))
+                {
+                    BarBackgroundColor = Color.FromHex("#d83434"),
+                    BarTextColor = Color.White
+                };
+
+            }
         }
 
         private async void CreateView_ItemTapped(object sender, ItemTappedEventArgs e)

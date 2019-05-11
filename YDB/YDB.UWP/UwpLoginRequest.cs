@@ -29,7 +29,11 @@ namespace YDB.UWP
             WebAuthenticationResult result = await WebAuthenticationBroker.AuthenticateAsync(WebAuthenticationOptions.None, startUri, endUri);
 
             string code = result.ResponseStatus != WebAuthenticationStatus.Success ? null : result.ResponseData;
-            (YDB.App.Current.MainPage as YDB.Views.MainPage).authentication.Uri = code;
+
+            if (code != null)
+            {
+                (YDB.App.Current.MainPage as YDB.Views.MainPage).authentication.Uri = code;
+            }
         }
     }
 }

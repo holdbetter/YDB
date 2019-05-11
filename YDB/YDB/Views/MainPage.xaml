@@ -2,6 +2,7 @@
 <MasterDetailPage xmlns="http://xamarin.com/schemas/2014/forms"
             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
             xmlns:views="clr-namespace:YDB.Views"
+            xmlns:models="clr-namespace:YDB.Models"
             x:Class="YDB.Views.MainPage">
 
     <MasterDetailPage.Master>
@@ -12,6 +13,11 @@
         <NavigationPage>
             <x:Arguments>
                 <views:CreateBasePage/>
+                <!--<views:DatabaseMenuPage>
+                    <x:Arguments>
+                        <models:DbMenuListModel/>
+                    </x:Arguments>
+                </views:DatabaseMenuPage>-->
             </x:Arguments>
         </NavigationPage>
     </MasterDetailPage.Detail>
