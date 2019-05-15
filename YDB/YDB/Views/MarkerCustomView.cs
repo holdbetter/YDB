@@ -8,11 +8,9 @@ namespace YDB.Views
 {
 	public class MarkerCustomView : ContentView
 	{
-        public static List<RelativeLayout> rllist = new List<RelativeLayout>();
-
         Button MarkerButton { get; set; }
         Label checkMarkL;
-        RelativeLayout rltest;
+        public RelativeLayout rltest;
 
         public string HexColor { get; set; }
         public bool Marked { get; set; }
@@ -34,17 +32,17 @@ namespace YDB.Views
             };
             MarkerButton.Pressed += (s, e) =>
             {
-                foreach (var item in rllist)
+                foreach (MarkerCustomView item in ((s as Button).Parent.Parent.Parent as StackLayout).Children)
                 {
-                    if (item.Children[1].IsVisible == true)
+                    if (item.rltest.Children[1].IsVisible == true)
                     {
-                        item.Children[1].IsVisible = false;
-                        Marked = false;
+                        item.rltest.Children[1].IsVisible = false;
+                        item.Marked = false;
                     }
                 }
 
                 (MarkerButton.Parent as RelativeLayout).Children[1].IsVisible = true;
-                Marked = true;
+                ((s as Button).Parent.Parent as MarkerCustomView).Marked = true;
 
                 SetMarkerInToModel();
             };
@@ -86,7 +84,7 @@ namespace YDB.Views
             #endregion
 
             Content = rltest;
-            rllist.Add(rltest);
+            //rllist.Add(rltest);
         }
 	}
 }

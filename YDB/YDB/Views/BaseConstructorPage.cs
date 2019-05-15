@@ -49,6 +49,8 @@ namespace YDB.Views
                     bool DatabaseIsOk = true;
                     MenuPage menuPage = (App.Current.MainPage as MainPage).Master as MenuPage;
 
+                    //редактирование внеш. вида Detail - удаление большого "создать" 
+                    //и добавление View с listview
                     if (menuPage.menuPageViewModel.DbList.Count == 0)
                     {
                         menuPage.field2.Children.Remove(menuPage.emptyDBView2);
@@ -128,6 +130,10 @@ namespace YDB.Views
                                         keysAndTypes.Add(new KeysAndTypes(field.name.Text, type) {
                                             DatabaseData = dbMenuListModel.DatabaseData });
                                     }
+                                    else if (problem == 2)
+                                    {
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -137,19 +143,62 @@ namespace YDB.Views
                             dbMenuListModel.DatabaseData.DatabaseName = dbMenuListModel.Name;
                             dbMenuListModel.DatabaseData.Data = keysAndTypes;
 
-                            foreach (var item in db.Accounts.ToList())
+                            db.DatabasesList.Add(dbMenuListModel);
+
+                            //добавление к себе
+                            var thisAccount = db.Accounts.FirstOrDefault(p => p.Email == App.Gmail);
+
+                            if (thisAccount != null)
                             {
-                                if (App.Gmail == item.Email)
+                                thisAccount.UsersDatabases.Add(new UsersDatabases()
                                 {
-                                    item.UsersDatabases.Add(new UsersDatabases()
+                                    DbMenuListModel = dbMenuListModel,
+                                    DbAccountModel = thisAccount
+                                });
+
+                                db.SaveChanges();
+                            }
+
+                            //добавление ко всем остальным, кто есть в списке приглашенных
+                            if (dbMenuListModel.IsPrivate && dbMenuListModel.InvitedUsers.Count > 0)
+                            {
+                                foreach (var userInt in dbMenuListModel.InvitedUsers)
+                                {
+                                    var obj = (from account in db.Accounts.Include(a => a.UsersDatabases)
+                                               where account.Number == userInt
+                                               select account).FirstOrDefault();
+
+                                    var database = (from databases in db.DatabasesList.Include(a => a.UsersDatabases)
+                                                    where databases.Id == dbMenuListModel.Id
+                                                    select databases).FirstOrDefault();
+
+                                    bool isEmpty = true;
+
+                                    if (obj != null)
                                     {
-                                        DbMenuListModel = dbMenuListModel,
-                                        DbAccountModel = item
-                                    });
+                                        foreach (var user in database.UsersDatabases)
+                                        {
+                                            if (user.DbAccountModelEmail == obj.Email)
+                                            {
+                                                isEmpty = false;
+                                                break;
+                                            }
+                                        }
+
+                                        if (isEmpty)
+                                        {
+                                            obj.UsersDatabases.Add(new UsersDatabases()
+                                            {
+                                                DbMenuListModel = dbMenuListModel,
+                                                DbAccountModel = obj
+                                            });
+
+                                            db.SaveChanges();
+                                        }
+                                    }
                                 }
                             }
 
-                            db.DatabasesList.Add(dbMenuListModel);
                             db.SaveChanges();
                         }
                     }

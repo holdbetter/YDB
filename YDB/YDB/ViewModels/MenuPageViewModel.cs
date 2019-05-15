@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Xamarin.Forms;
+using Xamarin.Essentials;
 using YDB.Models;
 using YDB.Views;
 using YDB.Services;
@@ -22,7 +23,7 @@ namespace YDB.ViewModels
         {
             DbList = new ObservableCollection<DbMenuListModel>();
 
-            EnterInAppBtn = new Command(() =>
+            EnterInAppBtn = new Command(async() =>
             {
                 if (Device.RuntimePlatform == Device.UWP)
                 {
@@ -37,7 +38,8 @@ namespace YDB.ViewModels
                     "&client_id=" + App.ClientId +
                     "&scope=" + App.Scope;
 
-                    Device.OpenUri(new Uri(authRequest));
+                    //Device.OpenUri(new Uri(authRequest));
+                    await Browser.OpenAsync(authRequest, BrowserLaunchMode.SystemPreferred);
                 }
             });
 

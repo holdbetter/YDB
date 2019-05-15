@@ -6,7 +6,7 @@ namespace YDB.Models
 {
     public class UsersDatabases
     {
-        public int DbAccountModelId { get; set; }
+        public string DbAccountModelEmail { get; set; }
         public DbAccountModel DbAccountModel { get; set; }
 
         public int DbMenuListModelId { get; set; }

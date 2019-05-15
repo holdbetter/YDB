@@ -9,8 +9,11 @@ namespace YDB.Models
     [Table("GoogleInfo")]
     public class DbAccountModel
     {
-        public int Id { get; set; }
+        private int number;
+
+        [Key]
         public string Email { get; set; }
+        public int Number { get; set; }
         public string GoogleNumbers { get; set; }
         public TokenModel TokenInfo { get; set; }
 

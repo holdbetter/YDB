@@ -24,8 +24,6 @@ namespace YDB.Views
 
         public CreateBasePage ()
 		{
-            MarkerCustomView.rllist.Clear();
-
             //создается объект модели для будущего заполнения и добавления в БД
             dbMenuListModel = new DbMenuListModel() { Carrier = App.Gmail } ;
 
@@ -67,8 +65,12 @@ namespace YDB.Views
                     {
                         if (entry.Text != null && entry.Text != "")
                         {
-                            //usersId.Add(new InvitedUsers() { UserNumber = Convert.ToInt32(entry.Text) });
-                            usersId.Add(Convert.ToInt32(entry.Text));
+                            //тут должна быть обрезка Id, если есть какие-то лишние символы
+
+                            if (!usersId.Contains(Convert.ToInt32(entry.Text)))
+                            {
+                                usersId.Add(Convert.ToInt32(entry.Text));
+                            }
                         }
                     }
 

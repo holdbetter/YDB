@@ -16,8 +16,12 @@ namespace YDB.Views
 
         public Image viewIm, editIm, addIm;
 
-        public DatabaseMenuPage(DbMenuListModel model)
+        public static DbMenuListModel model;
+
+        public DatabaseMenuPage(DbMenuListModel m)
         {
+            model = m;
+
             BindingContext = model;
 
             this.SetBinding(TitleProperty, "Name");
@@ -72,7 +76,7 @@ namespace YDB.Views
             TapGestureRecognizer editTapped = new TapGestureRecognizer();
             editTapped.Tapped += async (obj, e) => {
                 (obj as StackLayout).BackgroundColor = Color.FromHex("#c9c9c9");
-                await Navigation.PushAsync(new DatabaseEditPage(model));
+                await Navigation.PushAsync(new DatabaseInfoEditPage(model));
                 (obj as StackLayout).BackgroundColor = Color.FromHex("#d83434");
             };
 
@@ -115,10 +119,10 @@ namespace YDB.Views
             TapGestureRecognizer addTapped = new TapGestureRecognizer();
             addTapped.Tapped += async (obj, e) => {
                 (obj as StackLayout).BackgroundColor = Color.FromHex("#c9c9c9");
-                await Navigation.PushAsync(new DatabaseAddItemPage());
+                await Navigation.PushAsync(new DatabaseAddItemPage(model));
                 (obj as StackLayout).BackgroundColor = Color.FromHex("#d83434");
             };
-
+            
             addIm = new Image() { Source = "add.png", WidthRequest = 80, HeightRequest = 80 };
             addtext = new Label()
             {
@@ -173,6 +177,13 @@ namespace YDB.Views
             };
 
             Content = scr;
+        }
+
+        protected override void OnAppearing()
+        {
+            this.BindingContext = model;
+
+            base.OnAppearing();
         }
     }
 }

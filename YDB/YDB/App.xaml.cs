@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
+using YDB.Models;
 using YDB.Views;
 
 [assembly: XamlCompilation(XamlCompilationOptions.Compile)]
@@ -38,19 +39,31 @@ namespace YDB
             Device.RuntimePlatform == Device.iOS ? "GoogleSans-Regular" :
             Device.RuntimePlatform == Device.UWP ? "Assets/Fonts/GoogleSans-Regular.ttf#Google Sans" : null;
 
-        public static string Gmail;
-
+        public static string Gmail = "";
+        public static DateTime ExpiredTime;
+        public static DbAccountModel Account;
 
         public App()
         {
             InitializeComponent();
 
+            if (Application.Current.Properties.ContainsKey("Email"))
+            {
+                App.Gmail = Application.Current.Properties["Email"] as string;
+                App.ExpiredTime = Convert.ToDateTime(Application.Current.Properties["Expires"]);
+
+                if (ExpiredTime < DateTime.UtcNow) //проверка на сервере должна быть
+                {
+                    App.Gmail = ""; //не загрузит профиль
+                }
+                else
+                {
+                    //запрос на получение в список всех доступных бд
+                }
+            }
+
             MainPage = new MainPage();
             ((MainPage as MainPage).Detail as NavigationPage).BarBackgroundColor = Color.FromHex("#d83434");
-
-            //((MainPage as MainPage).Detail as NavigationPage).BarBackgroundColor = 
-            //    Device.RuntimePlatform != Device.UWP ? Color.FromHex("#d83434") 
-            //                                         : Color.Default;
         }
 
         protected override void OnStart()

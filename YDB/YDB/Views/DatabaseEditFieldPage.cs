@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace YDB.Views
 {
-    public class DatabaseEditPage : ContentPage
+    public class DatabaseEditFieldPage : ContentPage
     {
         private int buttonId;
 
@@ -30,18 +30,22 @@ namespace YDB.Views
             }
         }
 
-        public DatabaseEditPage(DbMenuListModel model)
+        public DatabaseEditFieldPage(DbMenuListModel model)
         {
             BindingContext = model;
+
+            this.SetBinding(TitleProperty, "Name");
 
             main = new StackLayout()
             {
                 Padding = new Thickness(10, 5, 10, 0),
             };
 
-            ToolbarItem saveTool = new ToolbarItem();
-            saveTool.Command = new Command(SaveKeys);
-            saveTool.CommandParameter = model;
+            ToolbarItem saveTool = new ToolbarItem
+            {
+                Command = new Command(UpdateData),
+                CommandParameter = model
+            };
 
             if (Device.RuntimePlatform == Device.UWP)
             {
@@ -93,7 +97,8 @@ namespace YDB.Views
                 Text = "Сохранить",
                 TextColor = Color.FromHex("#d83434"),
                 FontFamily = App.fontNameMedium,
-                Command = new Command(SaveKeys),
+                Command = new Command(UpdateData),
+                CommandParameter = model,
                 HorizontalOptions = LayoutOptions.FillAndExpand,
                 CornerRadius = 5
             };
@@ -133,14 +138,20 @@ namespace YDB.Views
 
         private async void DeleteBtnReleaseV2(object sender, EventArgs e)
         {
+            DbMenuListModel model = this.BindingContext as DbMenuListModel;
+
             bool x = await DisplayAlert("Удаление поля", 
                 "Удаление поля удалит все данные под этим полем. \nЭто действие нельзя отменить.", 
                 "Да", "Отмена");
 
             if (x)
             {
-                int get = Convert.ToInt32(((sender as Button).Parent.Parent.Parent as FieldCustomView).ClassId);
-                ((sender as Button).Parent.Parent.Parent.Parent.Parent.Parent as DatabaseEditPage).ButtonId = get;
+                FieldCustomView fieldCustomView = (sender as Button).Parent.Parent.Parent as FieldCustomView;
+
+                DeleteField(model, fieldCustomView);
+
+                int get = Convert.ToInt32(fieldCustomView.ClassId);
+                ((sender as Button).Parent.Parent.Parent.Parent.Parent.Parent as DatabaseEditFieldPage).ButtonId = get;
                 FieldCustomView.score--;
             }
         }
@@ -158,7 +169,8 @@ namespace YDB.Views
             }
         }
 
-        private async void SaveKeys(object mod)
+        //сохранение ключей
+        private async void UpdateData(object mod)
         {
             DbMenuListModel model = mod as DbMenuListModel;
 
@@ -237,6 +249,10 @@ namespace YDB.Views
                             {
                                 keysAndTypes.Add(new KeysAndTypes(field.name.Text, type));
                             }
+                            else if (problem == 2)
+                            {
+                                break;
+                            }
                         }
                     }
                 }
@@ -248,20 +264,54 @@ namespace YDB.Views
                     {
                         if (i < obj.DatabaseData.Data.Count)
                         {
+                            //только переименовка старых значений
                             obj.DatabaseData.Data[i].Key = keysAndTypes[i].Key;
                             obj.DatabaseData.Data[i].Type = keysAndTypes[i].Type;
                         }
 
                         if (i >= obj.DatabaseData.Data.Count)
                         {
-                            keysAndTypes[i].DatabaseData = obj.DatabaseData.Data[0].DatabaseData;
+                            //добавление новых ключей, связанных с базой
+                            keysAndTypes[i].DatabaseData = obj.DatabaseData;
                             obj.DatabaseData.Data.Add(keysAndTypes[i]);
                         }
                     }
 
+                    DatabaseMenuPage.model = obj;
+
                     db.SaveChanges();
                     await Navigation.PopAsync();
                 }
+            }
+        }
+
+        private void DeleteField(DbMenuListModel m, FieldCustomView fcv)
+        {
+            var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok2.db");
+
+            using (ApplicationContext db = new ApplicationContext(path))
+            {
+                var obj = (from keys in m.DatabaseData.Data
+                          where keys.Key == fcv.name.Text
+                          select keys).FirstOrDefault();
+
+                int deleteThisIdFromTable = Convert.ToInt32(fcv.ClassId);
+
+                var table = (from database in db.DatabasesList
+                           .Include(mod => mod.DatabaseData).ThenInclude(ub => ub.Data)
+                           .Include(mod => mod.UsersDatabases)
+                           .ToList()
+                           where database.Id == m.Id
+                           select database).FirstOrDefault();
+
+                m.DatabaseData.Data.Remove(obj);
+
+                if (table.DatabaseData.Data.Count != 0)
+                {
+                    table.DatabaseData.Data.RemoveAt(deleteThisIdFromTable);
+                }
+
+                db.SaveChanges();
             }
         }
     }

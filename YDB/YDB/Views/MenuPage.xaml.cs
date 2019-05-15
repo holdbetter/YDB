@@ -180,7 +180,7 @@ namespace YDB.Views
 
             createView = new ListView()
             {
-                ItemsSource = new List<EmptyModel>() { new EmptyModel() },
+                ItemsSource = new List<EmptyModel>() { new EmptyModel() }, //для пустого одиночного ViewCell
                 Margin = new Thickness(0, -5, 0, 0),
                 HasUnevenRows = false,
                 SeparatorVisibility = SeparatorVisibility.None,
@@ -298,6 +298,12 @@ namespace YDB.Views
                 Content = field1
             };
 
+            //if (App.Gmail != "")
+            //{
+            //    helloName.Text = "Привет!\n" + App.Gmail;
+            //    scr1.Content = field2;
+            //}
+
             Content = scr1;
         }
 
@@ -317,7 +323,7 @@ namespace YDB.Views
                            where database.Id == item.Id
                            select database).FirstOrDefault();
 
-                DatabaseViewPage dataViewPage = new DatabaseViewPage(obj);
+                //DatabaseViewPage dataViewPage = new DatabaseViewPage(obj);
 
                 (App.Current.MainPage as MainPage).Detail = new NavigationPage(new DatabaseMenuPage(obj))
                 {

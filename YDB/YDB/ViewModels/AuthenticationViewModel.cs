@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace YDB.ViewModels
 {
@@ -69,29 +70,49 @@ namespace YDB.ViewModels
                         TokenInfo = tokenModel
                     };
 
-                    #region Добавление гугл-профиля в базу данных
-
+                    #region Добавление гугл-профиля в базу данных и хранение в приложении
                     var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok2.db");
-
-                    //if (такого мейла в базе нет) => *СОЗДАНИЕ и добавление* 
-                    //else if (если мейл есть, ноне все данные (кроме мейла) совпадают) => *редактирование*
-                    //else |когда все совпадает| нич не делаем
-
-                    App.Gmail = dbAccountModel.Email;
 
                     using (ApplicationContext db = new ApplicationContext(path))
                     {
-                        db.Accounts.Add(dbAccountModel);
-                        db.SaveChanges();
+                        dbAccountModel.Number = db.Accounts.Count() + 1;
+
+                        //если в базе такой акк уже есть, тогда не добавляем, а просто
+                        //обновляем Current.Properties, а если нет такого пользователя,
+                        //то добавляем в базу и ставив Properties
+                        if (db.Accounts.FirstOrDefault(p => p.Email == dbAccountModel.Email) == null)
+                        {
+                            //тут коммент
+                            App.Gmail = dbAccountModel.Email;
+                            //Current.Properties.Add("Email", dbAccountModel.Email);
+                            //Application.Current.Properties.Add("Expires", dbAccountModel.TokenInfo.DateTime.AddMonths(1));
+                            await App.Current.SavePropertiesAsync();
+
+                            db.Accounts.Add(dbAccountModel);
+                            db.SaveChanges();
+                        }
+                        else if (db.Accounts.FirstOrDefault(p => p.Email == dbAccountModel.Email) != null)
+                        {
+                            var acc = db.Accounts.Include(a => a.TokenInfo).FirstOrDefault(p => p.Email == dbAccountModel.Email);
+
+                            App.Gmail = dbAccountModel.Email;
+
+                            if (acc.TokenInfo.DateTime < DateTime.UtcNow)
+                            {
+                                //Application.Current.Properties.Add("Expires", dbAccountModel.TokenInfo.DateTime);
+                                await App.Current.SavePropertiesAsync();
+
+                                acc.TokenInfo = dbAccountModel.TokenInfo;
+                                db.SaveChanges();
+                            }
+                        }
                     }
-
                     #endregion
-                }
 
-                //menu.emptyList.FontSize = 5;
-                menu.helloName.Text = "Привет!\n" + googleProfile.Emails[0].Value;
-                menu.scr1.Content = menu.field2;
-                menu.Content = menu.scr1;
+                    menu.helloName.Text = "Привет!\n" + googleProfile.Emails[0].Value;
+                    menu.scr1.Content = menu.field2;
+                    menu.Content = menu.scr1;
+                }                
             }
             else if (Uri != null && prop == "Uri" && Uri.Contains("code=") == false)
             {

@@ -12,6 +12,8 @@ namespace YDB.Views
 
         List<Label> labels;
 
+        //public static DbMenuListModel model;
+
         public DatabaseViewPage() { }
 
 
@@ -48,11 +50,6 @@ namespace YDB.Views
                     labels.Add(field);
                 }
             }
-
-            //Content = new StackLayout()
-            //{
-            //    Children = labels
-            //};
         }
     }
 }

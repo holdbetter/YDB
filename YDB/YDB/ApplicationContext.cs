@@ -22,12 +22,12 @@ namespace YDB
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<UsersDatabases>()
-                .HasKey(t => new { t.DbAccountModelId, t.DbMenuListModelId });
+                .HasKey(t => new { t.DbAccountModelEmail, t.DbMenuListModelId });
 
             modelBuilder.Entity<UsersDatabases>()
                 .HasOne(pt => pt.DbAccountModel)
                 .WithMany(p => p.UsersDatabases)
-                .HasForeignKey(pt => pt.DbAccountModelId);
+                .HasForeignKey(pt => pt.DbAccountModelEmail);
 
             modelBuilder.Entity<UsersDatabases>()
                 .HasOne(pt => pt.DbMenuListModel)
