@@ -21,9 +21,7 @@ namespace YDB.Views
         public DatabaseMenuPage(DbMenuListModel m)
         {
             model = m;
-
             BindingContext = model;
-
             this.SetBinding(TitleProperty, "Name");
 
             BackgroundColor = Color.White;

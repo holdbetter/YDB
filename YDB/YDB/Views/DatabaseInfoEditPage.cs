@@ -6,13 +6,14 @@ using Xamarin.Forms;
 using System.Linq;
 using YDB.Services;
 using YDB.ViewModels;
+using Microsoft.EntityFrameworkCore;
 
 namespace YDB.Views
 {
     public class DatabaseInfoEditPage : ContentPage
     {
         StackLayout main, forSwitch, markersStack;
-        Button editFieldPageBtn;
+        Button editFieldPageBtn, deleteDatabaseBtn;
         Label infoL, safetyL, markersL, nonPublic;
         Entry name;
         Switch isPublic;
@@ -20,8 +21,11 @@ namespace YDB.Views
 
         List<Entry> entriesOfInvitedId = new List<Entry>();
 
-        public DatabaseInfoEditPage(DbMenuListModel model)
+        public static DbMenuListModel model;
+
+        public DatabaseInfoEditPage(DbMenuListModel mod)
         {
+            model = mod;
             BindingContext = model;
             this.SetBinding(TitleProperty, "Name");
 
@@ -188,6 +192,7 @@ namespace YDB.Views
 
                 if (item.DbAccountModelEmail != model.Carrier)
                 {
+                    entriesOfInvitedId.Add(privateId);
                     main.Children.Add(sl);
                 }
             }
@@ -274,7 +279,25 @@ namespace YDB.Views
                 BackgroundColor = Color.Gray
             });
             main.Children.Add(editFieldPageBtn);
+
+            deleteDatabaseBtn = new Button()
+            {
+                Margin = new Thickness(5, 5),
+                BorderWidth = 1.5,
+                BorderColor = Color.FromHex("#d83434"),
+                BackgroundColor = Color.White,
+                Text = "Удалить таблицу",
+                TextColor = Color.FromHex("#d83434"),
+                FontFamily = App.fontNameMedium,
+                Command = new Command(DeleteDatabase),
+                CommandParameter = this.BindingContext,
+                HorizontalOptions = LayoutOptions.FillAndExpand,
+                CornerRadius = 5
+            }; //Удалить таблицу
+
+            main.Children.Add(deleteDatabaseBtn);
             #endregion
+
 
             #region Свайп для страницы
             SwipeGestureRecognizer swipeGesture = new SwipeGestureRecognizer()
@@ -286,6 +309,13 @@ namespace YDB.Views
             #endregion
 
             Content = main;
+        }
+
+        protected override void OnAppearing()
+        {
+            this.BindingContext = model;
+
+            base.OnAppearing();
         }
 
         private void CreateField()
@@ -321,7 +351,7 @@ namespace YDB.Views
                 }
             };
             main.Children.Insert(6, sl);
-            //entriesOfInvitedId.Add(sl.Children.First() as Entry);
+            entriesOfInvitedId.Add(sl.Children.First() as Entry);
         }
 
         private void IsPublic_Toggled(object sender, ToggledEventArgs e)
@@ -365,16 +395,16 @@ namespace YDB.Views
 
             using (ApplicationContext db = new ApplicationContext(path))
             {
-                var database = (from databases in db.DatabasesList
+                var database = (from databases in db.DatabasesList.Include(data => data.UsersDatabases)
+                                .Include(data => data.DatabaseData).ThenInclude(th => th.Data)
                                 where databases.Id == model.Id
                                 select databases).FirstOrDefault();
-
 
                 var menupage = ((App.Current.MainPage as MainPage).Master as MenuPage).menuPageViewModel;
 
                 foreach (var item in menupage.DbList)
                 {
-                    if (item.Id == model.Id)
+                    if (item.Id == database.Id)
                     {
                         menupage.DbList.Remove(item);
                         break;
@@ -385,11 +415,149 @@ namespace YDB.Views
                 database.Marker = model.Marker;
                 database.IsPrivate = model.IsPrivate;
 
+                db.SaveChanges();
+
+                List<int> usersId = new List<int>();
+
+                if (!database.IsPrivate)
+                {
+                    for (int i = database.UsersDatabases.Count - 1; i >= 0; i--)
+                    {
+                        if (database.UsersDatabases[i].DbAccountModelEmail != database.Carrier)
+                        {
+                            database.UsersDatabases.Remove(database.UsersDatabases[i]);
+                        }
+                    }
+                }
+                else
+                {
+                    //собираем новые id
+                    foreach (Entry entry in entriesOfInvitedId)
+                    {
+                        if (entry.Text != null && entry.Text != "")
+                        {
+                            //тут должна быть обрезка Id, если есть какие-то лишние символы
+
+                            if (!usersId.Contains(Convert.ToInt32(entry.Text)))
+                            {
+                                usersId.Add(Convert.ToInt32(entry.Text));
+                            }
+                        }
+                    }
+
+                    foreach (var id in usersId)
+                    {
+                        if (model.IsPrivate && usersId.Count > 0)
+                        {
+                            var a = (from account in db.Accounts.Include(us => us.UsersDatabases)
+                                     where account.Number == id
+                                     select account).FirstOrDefault();
+
+                            bool isEmpty = true;
+
+                            if (model != null && a != null)
+                            {
+                                //если у пользователя уже есть данная, база, то не добавляем его еще раз
+                                foreach (var user in database.UsersDatabases)
+                                {
+                                    if (user.DbAccountModelEmail == a.Email)
+                                    {
+                                        isEmpty = false;
+                                        break;
+                                    }
+                                }
+
+                                if (isEmpty)
+                                {
+                                    a.UsersDatabases.Add(new UsersDatabases()
+                                    {
+                                        DbMenuListModel = model,
+                                        DbAccountModel = a
+                                    });
+
+                                    db.SaveChanges();
+                                }
+                            }
+                        }
+                    }
+
+                    for (int i = database.UsersDatabases.Count - 1; i >= 0; i--)
+                    {
+                        bool shouldBeDeleted = true;
+                        foreach (var uId in usersId)
+                        {
+                            var objUser = (from accounts in db.Accounts.ToList()
+                                           where accounts.Number == uId
+                                           select accounts).FirstOrDefault();
+
+                            if (objUser != null)
+                            {
+                                if (database.UsersDatabases[i].DbAccountModelEmail == objUser.Email)
+                                {
+                                    shouldBeDeleted = false;
+                                }
+                            }
+                        }
+
+                        if (shouldBeDeleted)
+                        {
+                            if (database.UsersDatabases[i].DbAccountModelEmail != database.Carrier)
+                            {
+                                database.UsersDatabases.Remove(database.UsersDatabases[i]);
+                            }
+                        }
+                    }
+                }
+
                 menupage.DbList.Add(database);
                 DatabaseMenuPage.model = database;
 
                 await db.SaveChangesAsync();
                 await Navigation.PopAsync();
+            }
+        }
+
+        private async void DeleteDatabase(object obj)
+        {
+            DbMenuListModel model = obj as DbMenuListModel;
+
+            bool response = await DisplayAlert("Удаление таблицы",
+                $"Вы уверены, что хотите удалить таблицу {model.Name}?\n" +
+                $"Это необратимое действие!", "Да", "Отмена");
+
+            if (response)
+            {
+                NavigationPage np = new NavigationPage(new CreateBasePage())
+                {
+                    BarBackgroundColor = Color.FromHex("#d83434"),
+                    BarTextColor = Color.White
+                };
+
+                var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok2.db");
+
+                using (ApplicationContext db = new ApplicationContext(path))
+                {
+                    var database = (from databases in db.DatabasesList.Include(data => data.UsersDatabases)
+                                    .Include(data => data.DatabaseData).ThenInclude(th => th.Data)
+                                    where databases.Id == model.Id
+                                    select databases).FirstOrDefault();
+
+                    var menupage = ((App.Current.MainPage as MainPage).Master as MenuPage).menuPageViewModel;
+                    foreach (var item in menupage.DbList)
+                    {
+                        if (item.Id == database.Id)
+                        {
+                            menupage.DbList.Remove(item);
+                            break;
+                        }
+                    }
+
+                    db.DatabasesList.Remove(database);
+
+                    db.SaveChanges();
+
+                    (App.Current.MainPage as MainPage).Detail = np;
+                }
             }
         }
     }

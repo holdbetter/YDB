@@ -278,6 +278,7 @@ namespace YDB.Views
                     }
 
                     DatabaseMenuPage.model = obj;
+                    DatabaseInfoEditPage.model = obj;
 
                     db.SaveChanges();
                     await Navigation.PopAsync();

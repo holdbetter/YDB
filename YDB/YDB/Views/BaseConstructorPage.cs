@@ -59,7 +59,8 @@ namespace YDB.Views
 
                     NavigationPage np = new NavigationPage(new CreateBasePage())
                     {
-                        BarBackgroundColor = Color.FromHex("#d83434")
+                        BarBackgroundColor = Color.FromHex("#d83434"),
+                        BarTextColor = Color.White
                     };
 
                     var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok2.db");
