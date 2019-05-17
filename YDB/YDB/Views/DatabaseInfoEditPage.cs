@@ -396,7 +396,7 @@ namespace YDB.Views
             using (ApplicationContext db = new ApplicationContext(path))
             {
                 var database = (from databases in db.DatabasesList.Include(data => data.UsersDatabases)
-                                .Include(data => data.DatabaseData).ThenInclude(th => th.Data)
+                                .Include(data => data.DatabaseData).ThenInclude(th => th.Data).ThenInclude(th => th.Values)
                                 where databases.Id == model.Id
                                 select databases).FirstOrDefault();
 
@@ -538,7 +538,7 @@ namespace YDB.Views
                 using (ApplicationContext db = new ApplicationContext(path))
                 {
                     var database = (from databases in db.DatabasesList.Include(data => data.UsersDatabases)
-                                    .Include(data => data.DatabaseData).ThenInclude(th => th.Data)
+                                    .Include(data => data.DatabaseData).ThenInclude(th => th.Data).ThenInclude(th => th.Values)
                                     where databases.Id == model.Id
                                     select databases).FirstOrDefault();
 

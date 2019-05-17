@@ -126,7 +126,7 @@ namespace YDB.Views
             {
                 Margin = new Thickness(0, 0, 0, 0),
                 HorizontalTextAlignment = TextAlignment.Center,
-                Text = "Добавить",
+                Text = "Добавить / Удалить",
                 FontFamily = App.fontNameRegular,
                 FontSize = Device.RuntimePlatform == Device.UWP ? 12 :
                            Device.GetNamedSize(NamedSize.Small, typeof(Label))

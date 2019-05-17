@@ -13,10 +13,12 @@ namespace YDB.Views
         public Entry value;
         public Label key;
         public StackLayout main;
+        public int Index { get; set; }
 
-		public TableItemOnAdd(KeysAndTypes model)
+		public TableItemOnAdd(KeysAndTypes model, int index)
 		{
             BindingContext = model;
+            Index = index;
 
             key = new Label()
             {
@@ -45,6 +47,17 @@ namespace YDB.Views
                 FontFamily = App.fontNameRegular,
                 Placeholder = "Значение"
             };
+
+            if (index != -1)
+            {
+                if (model.Values.Count > 0)
+                {
+                    if (model.Values[index].Value != null)
+                    {
+                        value.Text = model.Values[index].Value;
+                    }
+                }
+            }
 
             main = new StackLayout()
             {

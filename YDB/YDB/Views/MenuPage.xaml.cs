@@ -298,11 +298,11 @@ namespace YDB.Views
                 Content = field1
             };
 
-            //if (App.Gmail != "")
-            //{
-            //    helloName.Text = "Привет!\n" + App.Gmail;
-            //    scr1.Content = field2;
-            //}
+            if (App.Gmail != "")
+            {
+                helloName.Text = "Привет!\n" + App.Gmail;
+                scr1.Content = field2;
+            }
 
             Content = scr1;
         }
@@ -317,7 +317,7 @@ namespace YDB.Views
             using (ApplicationContext db = new ApplicationContext(path))
             {
                 var obj = (from database in db.DatabasesList
-                           .Include(m => m.DatabaseData).ThenInclude(ub => ub.Data)
+                           .Include(m => m.DatabaseData).ThenInclude(ub => ub.Data).ThenInclude(ub => ub.Values)
                            .Include(m => m.UsersDatabases)
                            .ToList()
                            where database.Id == item.Id

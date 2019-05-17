@@ -181,7 +181,7 @@ namespace YDB.Views
                 bool DatabaseIsOk = true;
 
                 var obj = (from database in db.DatabasesList
-                           .Include(m => m.DatabaseData).ThenInclude(ub => ub.Data)
+                           .Include(m => m.DatabaseData).ThenInclude(ub => ub.Data).ThenInclude(ub => ub.Values)
                            .Include(m => m.UsersDatabases)
                            .ToList()
                            where database.Id == model.Id
@@ -298,19 +298,18 @@ namespace YDB.Views
 
                 int deleteThisIdFromTable = Convert.ToInt32(fcv.ClassId);
 
-                var table = (from database in db.DatabasesList
-                           .Include(mod => mod.DatabaseData).ThenInclude(ub => ub.Data)
-                           .Include(mod => mod.UsersDatabases)
-                           .ToList()
-                           where database.Id == m.Id
-                           select database).FirstOrDefault();
-
-                m.DatabaseData.Data.Remove(obj);
+                var table = (from database in db.DatabasesList.Include(p => p.DatabaseData)
+                             .ThenInclude(p => p.Data).ThenInclude(u => u.Values)
+                             .ToList()
+                             where database.Id == m.Id
+                             select database).FirstOrDefault();
 
                 if (table.DatabaseData.Data.Count != 0)
                 {
                     table.DatabaseData.Data.RemoveAt(deleteThisIdFromTable);
                 }
+
+                m.DatabaseData.Data.Remove(obj);
 
                 db.SaveChanges();
             }

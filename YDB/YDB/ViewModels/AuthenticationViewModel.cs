@@ -83,9 +83,9 @@ namespace YDB.ViewModels
                         if (db.Accounts.FirstOrDefault(p => p.Email == dbAccountModel.Email) == null)
                         {
                             //тут коммент
-                            App.Gmail = dbAccountModel.Email;
-                            //Current.Properties.Add("Email", dbAccountModel.Email);
-                            //Application.Current.Properties.Add("Expires", dbAccountModel.TokenInfo.DateTime.AddMonths(1));
+                            //App.Gmail = dbAccountModel.Email;
+                            Application.Current.Properties.Add("Email", dbAccountModel.Email);
+                            Application.Current.Properties.Add("Expires", dbAccountModel.TokenInfo.DateTime.AddMonths(1));
                             await App.Current.SavePropertiesAsync();
 
                             db.Accounts.Add(dbAccountModel);
@@ -99,7 +99,7 @@ namespace YDB.ViewModels
 
                             if (acc.TokenInfo.DateTime < DateTime.UtcNow)
                             {
-                                //Application.Current.Properties.Add("Expires", dbAccountModel.TokenInfo.DateTime);
+                                Application.Current.Properties.Add("Expires", dbAccountModel.TokenInfo.DateTime);
                                 await App.Current.SavePropertiesAsync();
 
                                 acc.TokenInfo = dbAccountModel.TokenInfo;
