@@ -10,8 +10,8 @@ namespace YDB.Views
 {
     public class DatabaseMenuPage : ContentPage
     {
-        public StackLayout view, edit, add;
-        StackLayout bg1, bg2, bg3;
+        public Frame view, edit, add;
+        Frame bg1, bg2, bg3;
         Label viewText, editText, addtext;
 
         public Image viewIm, editIm, addIm;
@@ -30,12 +30,12 @@ namespace YDB.Views
 
             TapGestureRecognizer viewTapped = new TapGestureRecognizer();
             viewTapped.Tapped += async (obj, e) => {
-                (obj as StackLayout).BackgroundColor = Color.FromHex("#c9c9c9");
-                await Navigation.PushAsync(new DatabaseViewPage());
-                (obj as StackLayout).BackgroundColor = Color.FromHex("#d83434");
+                (obj as Frame).BackgroundColor = Color.FromHex("#c9c9c9");
+                await Navigation.PushAsync(new DatabaseViewPage(model));
+                (obj as Frame).BackgroundColor = Color.FromHex("#d83434");
             };
 
-            viewIm = new Image() { Source = "view.png", WidthRequest = 80, HeightRequest = 80 };
+            viewIm = new Image() { Source = "view.png", WidthRequest = 70, HeightRequest = 70 };
             viewText = new Label()
             {
                 Margin = new Thickness(0, 0, 0, 0),
@@ -46,24 +46,33 @@ namespace YDB.Views
                            Device.GetNamedSize(NamedSize.Small, typeof(Label))
             };
 
-            bg1 = new StackLayout()
+            bg1 = new Frame()
             {
                 VerticalOptions = LayoutOptions.FillAndExpand,
                 BackgroundColor = this.BackgroundColor,
-                Children = { viewIm, viewText }
+                CornerRadius = 95,
+                Content = new StackLayout
+                {
+                    Children = { viewIm, viewText }
+                }
             };
 
-            view = new StackLayout()
+            view = new Frame()
             {
                 VerticalOptions = LayoutOptions.CenterAndExpand,
                 HorizontalOptions = LayoutOptions.CenterAndExpand,
                 Margin = Device.RuntimePlatform == Device.UWP ? new Thickness(50, 0, 0, 0) : 
                                                                 new Thickness(0, 20, 0, 0),
-                HeightRequest = 120,
-                WidthRequest = 120,
+                HeightRequest = 145,
+                WidthRequest = 145,
                 BackgroundColor = Color.FromHex("#d83434"),
+                CornerRadius = 100,
                 Padding = new Thickness(5),
-                Children = { bg1 }
+                //Content = new StackLayout()
+                //{
+                //    Children = { bg1 }
+                //}
+                Content = bg1
             };
             view.GestureRecognizers.Add(viewTapped);
 
@@ -73,12 +82,12 @@ namespace YDB.Views
 
             TapGestureRecognizer editTapped = new TapGestureRecognizer();
             editTapped.Tapped += async (obj, e) => {
-                (obj as StackLayout).BackgroundColor = Color.FromHex("#c9c9c9");
+                (obj as Frame).BackgroundColor = Color.FromHex("#c9c9c9");
                 await Navigation.PushAsync(new DatabaseInfoEditPage(model));
-                (obj as StackLayout).BackgroundColor = Color.FromHex("#d83434");
+                (obj as Frame).BackgroundColor = Color.FromHex("#d83434");
             };
 
-            editIm = new Image() { Source = "edit.png", WidthRequest = 80, HeightRequest = 80 };
+            editIm = new Image() { Source = "edit.png", WidthRequest = 70, HeightRequest = 70 };
             editText = new Label()
             {
                 Margin = new Thickness(0, 0, 0, 0),
@@ -89,24 +98,33 @@ namespace YDB.Views
                            Device.GetNamedSize(NamedSize.Small, typeof(Label))
             };
 
-            bg2 = new StackLayout()
+            bg2 = new Frame()
             {
                 BackgroundColor = this.BackgroundColor,
                 VerticalOptions = LayoutOptions.FillAndExpand,
-                Children = { editIm, editText }
+                CornerRadius = 95,
+                Content = new StackLayout
+                {
+                    Children = { editIm, editText }
+                }
             };
 
-            edit = new StackLayout()
+            edit = new Frame()
             {
                 VerticalOptions = LayoutOptions.CenterAndExpand,
                 HorizontalOptions = LayoutOptions.CenterAndExpand,
                 Margin = Device.RuntimePlatform == Device.UWP ? new Thickness(0, 0, 0, 0) :
                                                                 new Thickness(0, 20, 0, 0),
-                HeightRequest = 120,
-                WidthRequest = 120,
+                HeightRequest = 145,
+                WidthRequest = 145,
                 BackgroundColor = Color.FromHex("#d83434"),
+                CornerRadius = 100,
                 Padding = new Thickness(5),
-                Children = { bg2 }
+                Content = bg2
+                //Content = new StackLayout()
+                //{
+                //    Children = { bg2 }
+                //}
             };
             edit.GestureRecognizers.Add(editTapped);
 
@@ -116,40 +134,49 @@ namespace YDB.Views
 
             TapGestureRecognizer addTapped = new TapGestureRecognizer();
             addTapped.Tapped += async (obj, e) => {
-                (obj as StackLayout).BackgroundColor = Color.FromHex("#c9c9c9");
+                (obj as Frame).BackgroundColor = Color.FromHex("#c9c9c9");
                 await Navigation.PushAsync(new DatabaseAddItemPage(model));
-                (obj as StackLayout).BackgroundColor = Color.FromHex("#d83434");
+                (obj as Frame).BackgroundColor = Color.FromHex("#d83434");
             };
             
-            addIm = new Image() { Source = "add.png", WidthRequest = 80, HeightRequest = 80 };
+            addIm = new Image() { Source = "add.png", WidthRequest = 60, HeightRequest = 60 };
             addtext = new Label()
             {
                 Margin = new Thickness(0, 0, 0, 0),
                 HorizontalTextAlignment = TextAlignment.Center,
-                Text = "Добавить / Удалить",
+                Text = "Добавить\nУдалить",
                 FontFamily = App.fontNameRegular,
                 FontSize = Device.RuntimePlatform == Device.UWP ? 12 :
                            Device.GetNamedSize(NamedSize.Small, typeof(Label))
             };
 
-            bg3 = new StackLayout()
+            bg3 = new Frame()
             {
                 BackgroundColor = this.BackgroundColor,
                 VerticalOptions = LayoutOptions.FillAndExpand,
-                Children = { addIm, addtext }
+                CornerRadius = 95,
+                Content = new StackLayout()
+                {
+                    Children = { addIm, addtext }
+                }
             };
 
-            add = new StackLayout()
+            add = new Frame()
             {
                 VerticalOptions = LayoutOptions.CenterAndExpand,
                 HorizontalOptions = LayoutOptions.CenterAndExpand,
                 Margin = Device.RuntimePlatform == Device.UWP ? new Thickness(50, 0, 0, 0) : 
                                                                 new Thickness(0, 20, 0, 0),
-                HeightRequest = 120,
-                WidthRequest = 120,
+                HeightRequest = 145,
+                WidthRequest = 145,
                 BackgroundColor = Color.FromHex("#d83434"),
+                CornerRadius = 100,
                 Padding = new Thickness(5),
-                Children = { bg3 }
+                //Content = new StackLayout()
+                //{
+                //    Children = { bg3 }
+                //}
+                Content = bg3
             };
             add.GestureRecognizers.Add(addTapped);
 

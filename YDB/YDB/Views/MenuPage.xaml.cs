@@ -184,6 +184,7 @@ namespace YDB.Views
                 Margin = new Thickness(0, -5, 0, 0),
                 HasUnevenRows = false,
                 SeparatorVisibility = SeparatorVisibility.None,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Never,
                 RowHeight = 55,
                 VerticalOptions = LayoutOptions.Start,
                 ItemTemplate = new DataTemplate(() =>
