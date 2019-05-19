@@ -17,7 +17,7 @@ namespace YDB.Views
         MainPage RootPage { get => Application.Current.MainPage as MainPage; }
         public MenuPageViewModel menuPageViewModel;
 
-        ListView DbListView, createView;
+        public ListView DbListView, createView;
         public Label hello, youNotLogin;
         public Label helloName, emptyList;
         public Button btnGo;
@@ -35,6 +35,7 @@ namespace YDB.Views
 
             Title = "Меню";
 
+            //незалогиненный View
             #region field1
             field1 = new StackLayout()
             {
@@ -106,6 +107,7 @@ namespace YDB.Views
             field1.Children.Add(nonLoginView2);
             #endregion
 
+            //залогиненный View
             #region field2
             field2 = new StackLayout()
             {
@@ -176,6 +178,7 @@ namespace YDB.Views
             field2.Children.Add(emptyDBView2);
             #endregion
 
+            //ListView баз данных
             #region field3
 
             createView = new ListView()
@@ -224,6 +227,7 @@ namespace YDB.Views
 
             DbListView = new ListView()
             {
+                ItemsSource = menuPageViewModel.DbList,
                 Margin = new Thickness(0, -5, 0, 0),
                 HasUnevenRows = false,
                 SeparatorVisibility = SeparatorVisibility.None,
@@ -251,29 +255,34 @@ namespace YDB.Views
                         FontFamily = App.fontNameRegular,
                         VerticalTextAlignment = TextAlignment.Center,
                         FontSize = Device.GetNamedSize(NamedSize.Medium, typeof(Label)),
-                        TextColor = Color.Black,
+                        TextColor = Color.Black
                     };
-                    label.SetBinding(Label.TextProperty, "Name");
 
-                    return new ViewCell()
+                    StackLayout main = new StackLayout
                     {
-                        View = new StackLayout
-                        {
-                            VerticalOptions = LayoutOptions.Center,
-                            Padding = new Thickness(25, 0),
-                            Orientation = StackOrientation.Horizontal,
-                            Children =
+                        VerticalOptions = LayoutOptions.Center,
+                        Padding = new Thickness(25, 0),
+                        Orientation = StackOrientation.Horizontal,
+                        Children =
                             {
                                 button,
                                 label
                             }
-                        }
                     };
+
+                    ViewCell viewCell = new ViewCell()
+                    {
+                        View = main
+                    };  
+                    label.PropertyChanged += Label_PropertyChanged;
+
+                    label.SetBinding(Label.ClassIdProperty, "IsLoading");
+
+                    return viewCell;
                 })
             };
-            DbListView.SetBinding(ListView.ItemsSourceProperty, "DbList");
             DbListView.ItemSelected += DbListView_ItemSelected;
-            DbListView.ItemTapped += DbListView_ItemTapped;
+            DbListView.ItemTapped += DbListView_ItemTappedAsync;
 
             field3 = new StackLayout()
             {
@@ -308,10 +317,37 @@ namespace YDB.Views
             Content = scr1;
         }
 
-        private void DbListView_ItemTapped(object sender, ItemTappedEventArgs e)
+        private void Label_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (sender is Label)
+            {
+                if (e.PropertyName == "ClassId")
+                {
+                    if ((sender as Label).ClassId == "true")
+                    {
+                        //DbMenuListModel dbMenuList = (sender as Label).BindingContext as DbMenuListModel;
+                        //(sender as Label).Text = dbMenuList.Name;
+                        (sender as Label).SetBinding(Label.TextProperty, "Name");
+                        ((sender as Label).Parent.Parent as ViewCell).IsEnabled = true;
+                        //this.DbListView.ItemsSource = menuPageViewModel.DbList;
+                    }
+                    else if ((sender as Label).ClassId == "false")
+                    {
+                        ((sender as Label).Parent.Parent as ViewCell).IsEnabled = false;
+                        (sender as Label).Text = "Загрузка...";
+                    }
+                }
+            }
+        }
+
+        private async void DbListView_ItemTappedAsync(object sender, ItemTappedEventArgs e)
         {
             var item = e.Item as DbMenuListModel;
-            
+
+            if (item.IsLoading == "false")
+            {
+                return;
+            }
 
             var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok2.db");
 
@@ -324,14 +360,18 @@ namespace YDB.Views
                            where database.Id == item.Id
                            select database).FirstOrDefault();
 
-                //DatabaseViewPage dataViewPage = new DatabaseViewPage(obj);
-
                 (App.Current.MainPage as MainPage).Detail = new NavigationPage(new DatabaseMenuPage(obj))
                 {
                     BarBackgroundColor = Color.FromHex("#d83434"),
                     BarTextColor = Color.White
                 };
 
+                if (Device.RuntimePlatform == Device.Android)
+                {
+                    await Task.Delay(100);
+                }
+
+                (App.Current.MainPage as MainPage).IsPresented = false;
             }
         }
 

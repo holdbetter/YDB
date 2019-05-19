@@ -19,6 +19,7 @@ namespace YDB.Views
         ScrollView scr;
         Button add, save, delete;
 
+        //Список "объектов", где "объект" набор ключ + значение для элемента
         List<DataObjectCreate> ListDataObject = new List<DataObjectCreate>();
 
         public string CurrentIdOfObject
@@ -32,7 +33,7 @@ namespace YDB.Views
                 currentIdOfObject = value;
                 OnPropertyChanged("CurrentIdOfObject");
             }
-        }
+        } //текущая "страничка"-"объект"
         public string LastIdObject
         {
             get
@@ -44,7 +45,7 @@ namespace YDB.Views
                 lastIdObject = value;
                 OnPropertyChanged("LastIdObject");
             }
-        }
+        } //последняя возможная "страничка"-"объект"
 
         public DatabaseAddItemPage(DbMenuListModel model)
         {
@@ -58,6 +59,8 @@ namespace YDB.Views
                 VerticalOptions = LayoutOptions.FillAndExpand
             };
 
+            #region ViewSettings + создание "объектов"
+            //если есть какие-то ключи, то можно создавать объекты
             if (model.DatabaseData.Data.Count > 0)
             {
                 #region Toolbar
@@ -77,9 +80,13 @@ namespace YDB.Views
                 ToolbarItems.Add(toolbarItem);
                 #endregion
 
+                //если есть какие-то ключи и есть запись в первом ключе,
+                //тогда можно загрузить такой объект
                 if (model.DatabaseData.Data[0].Values.Count != 0)
                 {
-                    //создаем объекты, если значение в первом ключе не пустое (оно не может быть пустым, если оно есть)
+                    //создаем объекты, если значение в первом ключе не пустое 
+                    //(оно не может быть пустым, если оно есть)
+                    //"объект" в данном случае это кусок View c всеми Value привязанным к ключу по Id
                     int index = 0;
                     foreach (var item in model.DatabaseData.Data[0].Values)
                     {
@@ -89,7 +96,7 @@ namespace YDB.Views
                     }
                 }
             }
-            else
+            else //если нет полей
             {
                 Label label = new Label()
                 {
@@ -104,6 +111,7 @@ namespace YDB.Views
                 main.Children.Add(label);
             }
 
+            //добавление собранных "объектов" на страницу
             if (model.DatabaseData.Data.Count > 0)
             {
                 if (ListDataObject.Count > 0)
@@ -123,6 +131,7 @@ namespace YDB.Views
                     LastIdObject = ListDataObject.Count.ToString();
                 }
 
+                #region Нижняя панель управления
                 Button forward = new Button()
                 {
                     Margin = new Thickness(0, 0, 10, 0),
@@ -260,7 +269,9 @@ namespace YDB.Views
                     }
                 };
                 main.Children.Add(end);
+                #endregion
             }
+            #endregion
 
             Content = main;
         }
@@ -307,8 +318,6 @@ namespace YDB.Views
             var model = mod as DbMenuListModel;
 
             var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok2.db");
-
-            //Значения не могут быть пустыми
 
             if (ok)
             {

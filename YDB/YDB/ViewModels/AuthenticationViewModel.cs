@@ -34,9 +34,12 @@ namespace YDB.ViewModels
 
         public async void OnPropertyChanged(string prop = "")
         {
+            //в UwpLoginRequest / MenuPageViewModel открывается форма с логином
+            //после ввода данных гугл возвращает Uri в который, есть code - auth_code
+            //этот Uri попадает в свойство Uri данного объекта
             if (Uri != null && prop == "Uri" && Uri.Contains("code=") == true)
             {
-                #region Обработка auth кода
+                #region Парсим code из Uri
                 int pFrom = Uri.IndexOf("code=") + "code=".Length;
                 int pTo = Uri.LastIndexOf("&");
 
@@ -61,6 +64,7 @@ namespace YDB.ViewModels
                 //получение гугл-профиля
                 GoogleProfileModel googleProfile = await GetGoogleInfo(this.accessToken);
 
+                //если получение провалилось и десериализация не клеится, то выдаст DisplayAlert
                 if (googleProfile != null && tokenModel != null)
                 {
                     DbAccountModel dbAccountModel = new DbAccountModel()

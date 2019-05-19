@@ -38,7 +38,6 @@ namespace YDB.ViewModels
                     "&client_id=" + App.ClientId +
                     "&scope=" + App.Scope;
 
-                    //Device.OpenUri(new Uri(authRequest));
                     await Browser.OpenAsync(authRequest, BrowserLaunchMode.SystemPreferred);
                 }
             });
@@ -53,8 +52,8 @@ namespace YDB.ViewModels
                 {
                     current.Detail = new NavigationPage(new CreateBasePage())
                     {
-                        //BarBackgroundColor = Device.RuntimePlatform != Device.UWP ? Color.FromHex("#d83434") : Color.Default
-                        BarBackgroundColor = Color.FromHex("#d83434")
+                        BarBackgroundColor = Color.FromHex("#d83434"),
+                        BarTextColor = Color.White
                     };
 
                     if (Device.RuntimePlatform == Device.Android)

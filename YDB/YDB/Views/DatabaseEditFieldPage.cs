@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace YDB.Views
 {
+    //Page изменения полей - эквивалент BaseConstructorPage
     public class DatabaseEditFieldPage : ContentPage
     {
         private int buttonId;
@@ -41,6 +42,16 @@ namespace YDB.Views
                 Padding = new Thickness(10, 5, 10, 0),
             };
 
+            #region Swipe
+            SwipeGestureRecognizer swipeGesture = new SwipeGestureRecognizer()
+            {
+                Direction = SwipeDirection.Right
+            };
+            swipeGesture.Swiped += (s, e) => (App.Current.MainPage as MainPage).IsPresented = true;
+            main.GestureRecognizers.Add(swipeGesture);
+            #endregion
+
+            #region Toolbar
             ToolbarItem saveTool = new ToolbarItem
             {
                 Command = new Command(UpdateData),
@@ -58,9 +69,11 @@ namespace YDB.Views
             }
 
             ToolbarItems.Add(saveTool);
+            #endregion
 
+            #region ViewSettings
             FieldCustomView.score = 0;
-
+            //создает все поля, которые уже есть в базе и добавляет их в стэк
             foreach (var item in model.DatabaseData.Data)
             {
                 FieldCustomView fieldCustomView = new FieldCustomView(TapGestureRecognizer_Tapped, DeleteBtnReleaseV2);
@@ -111,13 +124,7 @@ namespace YDB.Views
             };
 
             main.Children.Add(horStack);
-
-            SwipeGestureRecognizer swipeGesture = new SwipeGestureRecognizer()
-            {
-                Direction = SwipeDirection.Right
-            };
-            swipeGesture.Swiped += (s, e) => (App.Current.MainPage as MainPage).IsPresented = true;
-            main.GestureRecognizers.Add(swipeGesture);
+            #endregion
 
             scr = new ScrollView()
             {
@@ -169,7 +176,7 @@ namespace YDB.Views
             }
         }
 
-        //сохранение ключей
+        //сохранение ключей-полей
         private async void UpdateData(object mod)
         {
             DbMenuListModel model = mod as DbMenuListModel;
@@ -189,6 +196,7 @@ namespace YDB.Views
 
                 List<KeysAndTypes> keysAndTypes = new List<KeysAndTypes>();
 
+                #region 1. Сбор и проверка данных
                 //собираем все ключи и типы в список
                 if (main.Children.Count != 0)
                 {
@@ -256,7 +264,9 @@ namespace YDB.Views
                         }
                     }
                 }
+                #endregion
 
+                #region 2. Обновление значений
                 if (DatabaseIsOk)
                 {
                     //обновляем значения
@@ -283,9 +293,11 @@ namespace YDB.Views
                     db.SaveChanges();
                     await Navigation.PopAsync();
                 }
+                #endregion
             }
         }
 
+        //удаление поля
         private void DeleteField(DbMenuListModel m, FieldCustomView fcv)
         {
             var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok2.db");

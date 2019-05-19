@@ -34,6 +34,12 @@ namespace YDB.Models
         }
 
         [NotMapped]
+        public string IsLoading { get; set;}
+
+        [NotMapped]
+        public int IsLoadingId { get; set; }
+
+        [NotMapped]
         public List<int> InvitedUsers
         {
             get

@@ -6,6 +6,7 @@ using Xamarin.Forms;
 
 namespace YDB.Views
 {
+    //объект одного маркера
 	public class MarkerCustomView : ContentView
 	{
         Button MarkerButton { get; set; }
@@ -15,10 +16,13 @@ namespace YDB.Views
         public string HexColor { get; set; }
         public bool Marked { get; set; }
 
+        //при создании передается: какой-необходим цвет маркера, потом цвет галочки и делегат,
+        //который будет добавлять отмеченный маркер в модель
         public MarkerCustomView (string color, Color markColor, Action SetMarkerInToModel)
 		{
             HexColor = color;
 
+            #region Кнопка и её событие
             MarkerButton = new Button()
             {
                 BorderColor = Color.Gray,
@@ -32,6 +36,7 @@ namespace YDB.Views
             };
             MarkerButton.Pressed += (s, e) =>
             {
+                //отключаем все галочки
                 foreach (MarkerCustomView item in ((s as Button).Parent.Parent.Parent as StackLayout).Children)
                 {
                     if (item.rltest.Children[1].IsVisible == true)
@@ -41,12 +46,17 @@ namespace YDB.Views
                     }
                 }
 
+                //ставим галочку на нажатом маркере
                 (MarkerButton.Parent as RelativeLayout).Children[1].IsVisible = true;
+                //устанавливает триггер нажатия
                 ((s as Button).Parent.Parent as MarkerCustomView).Marked = true;
 
+                //устанавливает маркер в модель
                 SetMarkerInToModel();
             };
+            #endregion
 
+            //галочка
             checkMarkL = new Label()
             {
                 HeightRequest = 35,
@@ -84,7 +94,6 @@ namespace YDB.Views
             #endregion
 
             Content = rltest;
-            //rllist.Add(rltest);
         }
 	}
 }

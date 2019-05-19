@@ -7,6 +7,8 @@ using Xamarin.Forms;
 
 namespace YDB.Views
 {
+    //объект на странице "Добавить"
+    //включает в себя Название поля + Сепаратор + Значение в Entry
 	public class TableItemOnAdd : ContentView
 	{
         public BoxView box;
@@ -18,8 +20,12 @@ namespace YDB.Views
 		public TableItemOnAdd(KeysAndTypes model, int index)
 		{
             BindingContext = model;
+
+            //Значение index - говорит о том, создал это поле пользователь или
+            //данное поле загружено из базы
             Index = index;
 
+            #region ViewSettings
             key = new Label()
             {
                 Margin = new Thickness(15, 10, 15, 0),
@@ -47,9 +53,12 @@ namespace YDB.Views
                 FontFamily = App.fontNameRegular,
                 Placeholder = "Значение"
             };
+            #endregion
 
+            //если поле из базы, а не добавленое только что пользователем
             if (index != -1)
             {
+                //пробуем получить данные об этом поле из базы
                 if (model.Values.Count > 0)
                 {
                     if (model.Values[index].Value != null)

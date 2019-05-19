@@ -7,6 +7,7 @@ using Xamarin.Forms;
 
 namespace YDB.Views
 {
+    //View представляет собой набор ключей + значений для добавления их в таблицу
     public class DataObjectCreate : ContentView
     {
         StackLayout main;
@@ -19,6 +20,7 @@ namespace YDB.Views
 
             main = new StackLayout();
 
+            //для каждого ключа создает объект
             foreach (var item in model.DatabaseData.Data)
             {
                 TableItemOnAdd tableItem = new TableItemOnAdd(item, index);

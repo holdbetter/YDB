@@ -8,6 +8,7 @@ using YDB.Models;
 
 namespace YDB.Views
 {
+    //Page - отображающий Menu для созданной базы
     public class DatabaseMenuPage : ContentPage
     {
         public Frame view, edit, add;
@@ -16,6 +17,8 @@ namespace YDB.Views
 
         public Image viewIm, editIm, addIm;
 
+        //будет перезаписываться при сохранении в других местах
+        //и предоставлять свежие данные для все других страниц
         public static DbMenuListModel model;
 
         public DatabaseMenuPage(DbMenuListModel m)

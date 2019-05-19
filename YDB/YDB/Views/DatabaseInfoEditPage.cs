@@ -298,7 +298,6 @@ namespace YDB.Views
             main.Children.Add(deleteDatabaseBtn);
             #endregion
 
-
             #region Свайп для страницы
             SwipeGestureRecognizer swipeGesture = new SwipeGestureRecognizer()
             {
@@ -402,15 +401,6 @@ namespace YDB.Views
 
                 var menupage = ((App.Current.MainPage as MainPage).Master as MenuPage).menuPageViewModel;
 
-                foreach (var item in menupage.DbList)
-                {
-                    if (item.Id == database.Id)
-                    {
-                        menupage.DbList.Remove(item);
-                        break;
-                    }
-                }
-
                 database.Name = model.Name;
                 database.Marker = model.Marker;
                 database.IsPrivate = model.IsPrivate;
@@ -509,7 +499,19 @@ namespace YDB.Views
                     }
                 }
 
-                menupage.DbList.Add(database);
+                for (int i = 0; i < menupage.DbList.Count; i++)
+                {
+                    if (menupage.DbList[i].Id == database.Id)
+                    {
+                        database.IsLoading = "true";
+
+                        menupage.DbList.RemoveAt(i);
+
+                        menupage.DbList.Insert(i, database);
+
+                        break;
+                    }
+                }
                 DatabaseMenuPage.model = database;
 
                 await db.SaveChangesAsync();

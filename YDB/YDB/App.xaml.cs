@@ -10,20 +10,22 @@ namespace YDB
 {
     public partial class App : Application
     {
-        //AppGoogleApiInfo
+        #region AppGoogleApiInfo
         public static string ClientId = "502847541706-pkqrpuul246ud4hdp524a1ae8bj00qki.apps.googleusercontent.com";
         public static string RedirectUrl = "com.googleusercontent.apps.502847541706-pkqrpuul246ud4hdp524a1ae8bj00qki:/oauth2redirect";
 
         public static string ClientIdUWP = "502847541706-nagh31q7mr5jvnrlu25kujfjt77mglo6.apps.googleusercontent.com";
         public static string RedirectUrlUWP = "https://google.com";
         public static string ClientSecretUWP = "eQIje61NJbMZcZ5tC8JfbrKV";
+        #endregion
 
-        //Links
+        #region Links
         public static string Scope = "https://www.googleapis.com/auth/userinfo.email";
         public static string AuthorizeUrl = "https://accounts.google.com/o/oauth2/v2/auth";
         public static string AccessTokenUrl = "https://www.googleapis.com/oauth2/v4/token";
+        #endregion
 
-        //Fonts
+        #region Fonts
         public static readonly string fontNameBold = 
             Device.RuntimePlatform == Device.Android ? "GoogleSans-Bold.ttf#GoogleSans" :
             Device.RuntimePlatform == Device.iOS ? "GoogleSans-Bold" :
@@ -38,6 +40,7 @@ namespace YDB
             Device.RuntimePlatform == Device.Android ? "GoogleSans-Regular.ttf#Google Sans" :
             Device.RuntimePlatform == Device.iOS ? "GoogleSans-Regular" :
             Device.RuntimePlatform == Device.UWP ? "Assets/Fonts/GoogleSans-Regular.ttf#Google Sans" : null;
+        #endregion
 
         public static string Gmail = "";
         public static DateTime ExpiredTime;
@@ -47,6 +50,7 @@ namespace YDB
         {
             InitializeComponent();
 
+            //Вытаскиваем Email, если есть
             if (Application.Current.Properties.ContainsKey("Email"))
             {
                 App.Gmail = Application.Current.Properties["Email"] as string;
@@ -64,6 +68,7 @@ namespace YDB
 
             MainPage = new MainPage();
             ((MainPage as MainPage).Detail as NavigationPage).BarBackgroundColor = Color.FromHex("#d83434");
+            ((MainPage as MainPage).Detail as NavigationPage).BarTextColor = Color.White;
         }
 
         protected override void OnStart()

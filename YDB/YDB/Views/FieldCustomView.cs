@@ -7,7 +7,7 @@ using Xamarin.Forms;
 
 namespace YDB.Views
 {
-
+    //объект-View для создания ключа и его типа
     public class FieldCustomView : ContentView
     {
         Frame main;
@@ -16,12 +16,17 @@ namespace YDB.Views
         public Entry picker;
         Button deleteBtn;
 
-        public static int score = 0;
+        public static int score = 0; //количество созданных полей
 
+        //tap - делегат, который вызывает DisplayActionSheet для выбора типа данных
+        //delete - делегат кнопки удаления
         public FieldCustomView(EventHandler<FocusEventArgs> tap, EventHandler delete)
         {
+            //передаем в ClassId количество полей - понадобится для удаления Frame
+            //из страницы по Id
             ClassId = score.ToString();
 
+            #region ViewSettings
             main = new Frame
             {
                 CornerRadius = 10,
@@ -52,7 +57,7 @@ namespace YDB.Views
                 PlaceholderColor = Color.White,
                 TextColor = Color.White,
                 VerticalOptions = LayoutOptions.StartAndExpand,
-                BackgroundColor = Device.RuntimePlatform == Device.UWP ? Color.Transparent : Color.Default                
+                BackgroundColor = Device.RuntimePlatform == Device.UWP ? Color.Transparent : Color.Default
             };
             picker.Focused += tap;
 
@@ -70,6 +75,9 @@ namespace YDB.Views
                 FontFamily = App.fontNameMedium,
                 CornerRadius = 5
             };
+            #endregion
+
+            //события кнопки
             deleteBtn.Pressed += DeleteBtn_Pressed;
             deleteBtn.Released += DeleteBtn_Released;
             deleteBtn.Released += delete;
@@ -78,7 +86,9 @@ namespace YDB.Views
             frameStack.Children.Add(picker);
             frameStack.Children.Add(deleteBtn);
 
+            //добавление стэка в Frame
             main.Content = frameStack;
+
             Content = main;
         }
 

@@ -16,11 +16,10 @@ namespace YDB.Views
         StackLayout main, forSwitch, markersStack;
         Switch isPublic;
         ScrollView markerScroll;
-        List<Entry> entriesOfInvitedId = new List<Entry>();
-
-        MarkerCustomView selectedMarker;
-
+        
         DbMenuListModel dbMenuListModel;
+
+        List<Entry> entriesOfInvitedId = new List<Entry>();
 
         public CreateBasePage ()
 		{
@@ -29,25 +28,13 @@ namespace YDB.Views
 
             Title = "Создание базы данных";
 
-            main = new StackLayout()
-            {
-                HorizontalOptions = LayoutOptions.FillAndExpand,
-                VerticalOptions = LayoutOptions.FillAndExpand,
-            };
-
-            SwipeGestureRecognizer swipeGesture = new SwipeGestureRecognizer()
-            {
-                Direction = SwipeDirection.Right
-            };
-            swipeGesture.Swiped += (s, e) => (App.Current.MainPage as MainPage).IsPresented = true;
-            main.GestureRecognizers.Add(swipeGesture);
-
             #region Toolbar
             ToolbarItem toolbarItem = new ToolbarItem();
             toolbarItem.Command = new Command(async() => 
             {
                 toolbarItem.IsEnabled = false;
 
+                //обрезка имени базы и uppercase первой буквы
                 if (name.Text != null && name.Text != "")
                 {
                     string text = name.Text.Trim();
@@ -55,8 +42,10 @@ namespace YDB.Views
                     dbMenuListModel.Name = (text.Remove(0, 1)).Insert(0, firstLetter.ToUpper());
                 }
 
+                //парсинг данных по доступу к базе
                 dbMenuListModel.IsPrivate = isPublic.IsToggled;
 
+                //добавление Id-шников, если база приватная
                 if (dbMenuListModel.IsPrivate)
                 {
                     List<int> usersId = new List<int>();
@@ -74,9 +63,12 @@ namespace YDB.Views
                         }
                     }
 
+                    //передача ID
                     dbMenuListModel.InvitedUsers = usersId;
                 }
 
+                //если все ок, то передаем данные на следующую страницу
+                //если нет, то уведомляем
                 if (dbMenuListModel.Marker != null && dbMenuListModel.Name != "" && dbMenuListModel.Name != null)
                 {
                     await Navigation.PushAsync(new BaseConstructorPage(dbMenuListModel));
@@ -103,6 +95,12 @@ namespace YDB.Views
             #endregion
 
             #region Views Settings
+            main = new StackLayout()
+            {
+                HorizontalOptions = LayoutOptions.FillAndExpand,
+                VerticalOptions = LayoutOptions.FillAndExpand,
+            };
+
 
             infoL = new Label()
             {
@@ -250,6 +248,15 @@ namespace YDB.Views
                 BackgroundColor = Color.Gray
             });
 
+            #endregion
+
+            #region Свайп
+            SwipeGestureRecognizer swipeGesture = new SwipeGestureRecognizer()
+            {
+                Direction = SwipeDirection.Right
+            };
+            swipeGesture.Swiped += (s, e) => (App.Current.MainPage as MainPage).IsPresented = true;
+            main.GestureRecognizers.Add(swipeGesture);
             #endregion
 
             ScrollView scroll = new ScrollView()

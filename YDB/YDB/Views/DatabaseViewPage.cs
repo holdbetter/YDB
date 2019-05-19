@@ -10,9 +10,12 @@ using System.Linq;
 
 namespace YDB.Views
 {
+    //Page демонстрирует все объекты хранящиеся в таблице, отображая их главное поле 
     public class DatabaseViewPage : ContentPage
     {
+        //текущий вид коллекции
         ObservableCollection<Values> mainValues;
+        //хранит вид коллекции по умолчанию - такой, какой был создан (сорт по Id)
         ObservableCollection<Values> defaultView;
 
         public DatabaseViewPage(DbMenuListModel model)
@@ -22,40 +25,55 @@ namespace YDB.Views
 
             mainValues = new ObservableCollection<Values>();
 
+            #region ViewSettings
+            //Название главное поля
             Label mainKey = new Label()
             {
                 VerticalOptions = LayoutOptions.Center,
                 Margin = new Thickness(10, 0),
-                BindingContext = model.DatabaseData.Data[0],
+                BindingContext = model.DatabaseData.Data.Count > 0 ? model.DatabaseData.Data[0] : null,
                 HorizontalTextAlignment = TextAlignment.Start,
                 VerticalTextAlignment = TextAlignment.End,
                 FontFamily = App.fontNameMedium,
                 TextColor = Color.FromHex("#d83434"),
                 FontSize = Device.GetNamedSize(NamedSize.Medium, typeof(Label)) * 1
             };
-            mainKey.SetBinding(Label.TextProperty, "Key");
+
+            if (mainKey.BindingContext == null)
+            {
+                mainKey.Text = "Мы не нашли ни полей, ни значений!";
+            }
+            else
+            {
+                mainKey.SetBinding(Label.TextProperty, "Key");
+            }
+
+            #region FormattedStr для количество объектов и Label под этот текст
 
             FormattedString fs = new FormattedString();
 
-            Span text = new Span()
+            if (mainKey.BindingContext != null)
             {
-                Text = "Количество объектов: ",
-            };
+                Span text = new Span()
+                {
+                    Text = "Количество объектов: ",
+                };
 
-            Span count = new Span()
-            {
-                BindingContext = mainValues,
-            };
-            count.SetBinding(Span.TextProperty, "Count");
-            fs.Spans.Add(text);
-            fs.Spans.Add(count);
+                Span count = new Span()
+                {
+                    BindingContext = mainValues,
+                };
+                count.SetBinding(Span.TextProperty, "Count");
+                fs.Spans.Add(text);
+                fs.Spans.Add(count);
+            }
 
             Label objectsCountLabel = new Label()
             {
                 HorizontalOptions = LayoutOptions.EndAndExpand,
                 FormattedText = fs,
                 Margin = new Thickness(10, 0),
-                BindingContext = model.DatabaseData.Data[0],
+                BindingContext = model.DatabaseData.Data.Count > 0 ? model.DatabaseData.Data[0] : null,
                 HorizontalTextAlignment = TextAlignment.Start,
                 VerticalTextAlignment = TextAlignment.Center,
                 FontFamily = App.fontNameRegular,
@@ -65,21 +83,16 @@ namespace YDB.Views
                            Device.GetNamedSize(NamedSize.Medium, typeof(Label)) * 0.8
             };
 
-            Picker sortPick = new Picker() {
-                Margin = new Thickness(5, 0),
-                HorizontalOptions = LayoutOptions.Fill,
-                Items = { "По умолчанию", "По алфавиту (А -> Я)", "По алфавиту (Я -> А)" },
-                FontFamily = App.fontNameRegular
-            };
-            sortPick.SelectedIndex = 0;
-            sortPick.SelectedIndexChanged += SortPick_SelectedIndexChanged;
+            #endregion
 
+            //Стэк для фрейма с информацией о таблице
             StackLayout frameInfoStack = new StackLayout()
             {
                 Orientation = StackOrientation.Horizontal,
                 Children = { mainKey, objectsCountLabel }
             };
 
+            //Фрейм с информацией о таблице
             Frame mainInfo = new Frame()
             {
                 Margin = new Thickness(12, 12),
@@ -101,17 +114,37 @@ namespace YDB.Views
                 }
             };
 
-            foreach (var item in model.DatabaseData.Data[0].Values)
+            #region Работа со списками
+            //заполняем главный список объектами из главного поля
+            if (model.DatabaseData.Data.Count > 0)
             {
-                mainValues.Add(item);
+                foreach (var item in model.DatabaseData.Data[0].Values)
+                {
+                    mainValues.Add(item);
+                }
             }
 
+            //заполняем список "по умолчанию" список объектами из главного поля
             defaultView = new ObservableCollection<Values>();
             foreach (var item in mainValues)
             {
                 defaultView.Add(item);
             }
+            #endregion
 
+            #region Picker сортировок и все, что с ним связано
+            //Пикер для сортировки
+            Picker sortPick = new Picker()
+            {
+                Margin = new Thickness(5, 0),
+                HorizontalOptions = LayoutOptions.Fill,
+                Items = { "По умолчанию", "По алфавиту (А -> Я)", "По алфавиту (Я -> А)" },
+                FontFamily = App.fontNameRegular
+            };
+            sortPick.SelectedIndex = 0;
+            sortPick.SelectedIndexChanged += SortPick_SelectedIndexChanged;
+
+            //если есть объекты в базе, то добавляем сортировку во Frame
             if (mainValues.Count > 0)
             {
                 StackLayout framePickerStack = new StackLayout()
@@ -134,7 +167,9 @@ namespace YDB.Views
                 ((mainInfo.Content as Frame).Content as StackLayout).
                     Children.Insert(1, framePickerStack);
             }
+            #endregion
 
+            //Список объектов с ручным сепаратором
             ListView listView = new ListView()
             {
                 ItemsSource = mainValues,
@@ -177,6 +212,7 @@ namespace YDB.Views
             };
             listView.ItemSelected += ListView_ItemSelected;
             listView.ItemTapped += ListView_ItemTapped;
+            #endregion
 
             Content = new StackLayout()
             {
@@ -188,6 +224,7 @@ namespace YDB.Views
             };
         }
 
+        //сортировка
         private void SortPick_SelectedIndexChanged(object sender, EventArgs e)
         {
             int selectedIndex = (sender as Picker).SelectedIndex;
@@ -243,9 +280,9 @@ namespace YDB.Views
             }
         }
 
+        //нажатие на элемент в списке объектов
         private async void ListView_ItemTapped(object sender, ItemTappedEventArgs e)
         {
-            var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok2.db");
             int id = (e.Item as Values).Id;
 
             DbMenuListModel mod = this.BindingContext as DbMenuListModel;
