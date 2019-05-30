@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using YDB.Services;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using System.Threading;
 
 namespace YDB.Views
 {
@@ -17,7 +18,7 @@ namespace YDB.Views
         MainPage RootPage { get => Application.Current.MainPage as MainPage; }
         public MenuPageViewModel menuPageViewModel;
 
-        public ListView DbListView, createView;
+        public ListView DbListView;
         public Label hello, youNotLogin;
         public Label helloName, emptyList, yourId;
         public Button btnGo, btnOut;
@@ -25,6 +26,7 @@ namespace YDB.Views
 
         ImageButton imageButton;
 
+        Frame createView;
         StackLayout nonLoginView1, nonLoginView2;
         public StackLayout emptyDBView1, emptyDBView2, DbStackListView;
         public StackLayout field1, field2, field3;
@@ -222,49 +224,41 @@ namespace YDB.Views
             //ListView баз данных
             #region field3
 
-            createView = new ListView()
+            TapGestureRecognizer createTapped = new TapGestureRecognizer();
+            createTapped.Tapped += CreateView_ItemTapped;
+
+            createView = new CustomFrame()
             {
-                ItemsSource = new List<EmptyModel>() { new EmptyModel() }, //для пустого одиночного ViewCell
+                Padding = new Thickness(0),
                 Margin = new Thickness(0, -5, 0, 0),
-                HasUnevenRows = false,
-                SeparatorVisibility = SeparatorVisibility.None,
-                VerticalScrollBarVisibility = ScrollBarVisibility.Never,
-                RowHeight = 55,
+                CornerRadius = 0,
+                HeightRequest = 55,
                 VerticalOptions = LayoutOptions.Start,
-                ItemTemplate = new DataTemplate(() =>
+                Content = new StackLayout()
                 {
-                    ViewCell viewCell = new ViewCell()
+                    Orientation = StackOrientation.Horizontal,
+                    Padding = new Thickness(25, 0),
+                    Children =
                     {
-                        View = new StackLayout()
+                        new Image()
                         {
-                            Orientation = StackOrientation.Horizontal,
-                            Padding = new Thickness(25, 0),
-                            HeightRequest = 55,
-                            Children =
-                            {
-                                new Image()
-                                {
-                                    WidthRequest = 30,
-                                    HeightRequest = 30,
-                                    Source = "btnAddImg.png"
-                                },
-                                new Label()
-                                {
-                                    Margin = new Thickness(15, 0, 0, 0),
-                                    FontFamily = App.fontNameRegular,
-                                    VerticalTextAlignment = TextAlignment.Center,
-                                    FontSize = Device.GetNamedSize(NamedSize.Medium, typeof(Label)),
-                                    TextColor = Color.Black,
-                                    Text = "Создать"
-                                }
-                            }
+                            WidthRequest = 30,
+                            HeightRequest = 30,
+                            Source = "btnAddImg.png"
+                        },
+                        new Label()
+                        {
+                            Margin = new Thickness(15, 0, 0, 0),
+                            FontFamily = App.fontNameRegular,
+                            VerticalTextAlignment = TextAlignment.Center,
+                            FontSize = Device.GetNamedSize(NamedSize.Medium, typeof(Label)),
+                            TextColor = Color.Black,
+                            Text = "Создать"
                         }
-                    };
-                    return viewCell;
-                })
+                    }
+                }
             };
-            createView.ItemSelected += CreateView_ItemSelected;
-            createView.ItemTapped += CreateView_ItemTapped;
+            createView.GestureRecognizers.Add(createTapped);
 
             DbListView = new ListView()
             {
@@ -353,6 +347,13 @@ namespace YDB.Views
             Content = scr1;
         }
 
+        private void CreateView_Focused(object sender, FocusEventArgs e)
+        {
+            StackLayout thisStack = sender as StackLayout;
+            Color defaultColor = thisStack.BackgroundColor;
+            createView.BackgroundColor = Color.Gray;
+        }
+
         private async void BtnOut_Pressed(object sender, EventArgs e)
         {
             menuPageViewModel.DbList.Clear();
@@ -423,8 +424,12 @@ namespace YDB.Views
             }
         }
 
-        private async void CreateView_ItemTapped(object sender, ItemTappedEventArgs e)
+        private async void CreateView_ItemTapped(object sender, EventArgs e)
         {
+            Frame thisStack = sender as Frame;
+            Color defaultColor = createView.BackgroundColor;
+            createView.BackgroundColor = Color.LightGray;
+
             NavigationPage page = (App.Current.MainPage as MainPage).Detail as NavigationPage;
 
             if (!(page?.CurrentPage is CreateBasePage))
@@ -440,11 +445,16 @@ namespace YDB.Views
             }
 
             (App.Current.MainPage as MainPage).IsPresented = false;
-        }
 
-        private void CreateView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
-        {
-            ((ListView)sender).SelectedItem = null;
+
+            Timer timer = new Timer((f) => 
+            {
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    createView.BackgroundColor = defaultColor;
+                });
+            }, 
+                null, 80, Timeout.Infinite);
         }
 
         private void DbListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)

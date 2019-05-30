@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Xamarin.Forms;
 
-namespace YDB.Models
+namespace YDB.Views
 {
-    class EmptyModel
+    public class CustomFrame : Frame
     {
+
     }
 }
