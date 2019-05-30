@@ -18,7 +18,6 @@ namespace YDB.Views
         MainPage RootPage { get => Application.Current.MainPage as MainPage; }
         public MenuPageViewModel menuPageViewModel;
 
-        public ListView DbListView;
         public Label hello, youNotLogin;
         public Label helloName, emptyList, yourId;
         public Button btnGo, btnOut;
@@ -28,7 +27,7 @@ namespace YDB.Views
 
         Frame createView;
         StackLayout nonLoginView1, nonLoginView2;
-        public StackLayout emptyDBView1, emptyDBView2, DbStackListView;
+        public StackLayout emptyDBView1, emptyDBView2, DbStackListView, databaseListStack;
         public StackLayout field1, field2, field3;
         public ScrollView scr1;
 
@@ -260,65 +259,13 @@ namespace YDB.Views
             };
             createView.GestureRecognizers.Add(createTapped);
 
-            DbListView = new ListView()
+
+            databaseListStack = new StackLayout();
+            foreach (var item in menuPageViewModel.DbList)
             {
-                ItemsSource = menuPageViewModel.DbList,
-                Margin = new Thickness(0, -5, 0, 0),
-                HasUnevenRows = false,
-                SeparatorVisibility = SeparatorVisibility.None,
-                RowHeight = 55,
-                ItemTemplate = new DataTemplate(() =>
-                {
-                    Button button = new Button()
-                    {
-                        ClassId = "",
-                        BorderColor = Color.Gray,
-                        BorderWidth = 0.5,
-                        AnchorX = 0.5,
-                        AnchorY = 0.5,
-                        WidthRequest = 30,
-                        HeightRequest = 30,
-                        CornerRadius = 100,
-                        IsEnabled = Device.RuntimePlatform == Device.UWP ? true : false,
-                        VerticalOptions = LayoutOptions.Center,
-                        HorizontalOptions = LayoutOptions.Center
-                    };
-                    button.SetBinding(Button.BackgroundColorProperty, "HexColor");
-
-                    Label label = new Label()
-                    {
-                        Margin = new Thickness(15, 0, 0, 0),
-                        FontFamily = App.fontNameRegular,
-                        VerticalTextAlignment = TextAlignment.Center,
-                        FontSize = Device.GetNamedSize(NamedSize.Medium, typeof(Label)),
-                        TextColor = Color.Black
-                    };
-
-                    StackLayout main = new StackLayout
-                    {
-                        VerticalOptions = LayoutOptions.Center,
-                        Padding = new Thickness(25, 0),
-                        Orientation = StackOrientation.Horizontal,
-                        Children =
-                            {
-                                button,
-                                label
-                            }
-                    };
-
-                    ViewCell viewCell = new ViewCell()
-                    {
-                        View = main
-                    };  
-                    label.PropertyChanged += Label_PropertyChanged;
-
-                    label.SetBinding(Label.ClassIdProperty, "IsLoading");
-
-                    return viewCell;
-                })
-            };
-            DbListView.ItemSelected += DbListView_ItemSelected;
-            DbListView.ItemTapped += DbListView_ItemTappedAsync;
+                ListDbView listDb = new ListDbView(item);
+                databaseListStack.Children.Add(listDb);
+            }
 
             field3 = new StackLayout()
             {
@@ -333,7 +280,7 @@ namespace YDB.Views
                         HorizontalOptions = LayoutOptions.Fill,
                         BackgroundColor = Color.Gray
                     },
-                    DbListView
+                    databaseListStack
                 }
             };
 
@@ -357,6 +304,7 @@ namespace YDB.Views
         private async void BtnOut_Pressed(object sender, EventArgs e)
         {
             menuPageViewModel.DbList.Clear();
+            databaseListStack.Children.Clear();
 
             Application.Current.Properties.Remove("Email");
             Application.Current.Properties.Remove("Expires");
@@ -386,41 +334,6 @@ namespace YDB.Views
                         (sender as Label).Text = "Загрузка...";
                     }
                 }
-            }
-        }
-
-        private async void DbListView_ItemTappedAsync(object sender, ItemTappedEventArgs e)
-        {
-            var item = e.Item as DbMenuListModel;
-
-            if (item.IsLoading == "false")
-            {
-                return;
-            }
-
-            var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok3.db");
-
-            using (ApplicationContext db = new ApplicationContext(path))
-            {
-                var obj = (from database in db.DatabasesList
-                           .Include(m => m.DatabaseData).ThenInclude(ub => ub.Data).ThenInclude(ub => ub.Values)
-                           .Include(m => m.UsersDatabases)
-                           .ToList()
-                           where database.Id == item.Id
-                           select database).FirstOrDefault();
-
-                (App.Current.MainPage as MainPage).Detail = new NavigationPage(new DatabaseMenuPage(obj))
-                {
-                    BarBackgroundColor = Color.FromHex("#d83434"),
-                    BarTextColor = Color.White
-                };
-
-                if (Device.RuntimePlatform == Device.Android)
-                {
-                    await Task.Delay(100);
-                }
-
-                (App.Current.MainPage as MainPage).IsPresented = false;
             }
         }
 
@@ -455,11 +368,6 @@ namespace YDB.Views
                 });
             }, 
                 null, 80, Timeout.Infinite);
-        }
-
-        private void DbListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
-        {
-            ((ListView)sender).SelectedItem = null;
         }
 
         private void ImageButton_Released(object sender, EventArgs e)

@@ -134,6 +134,7 @@ namespace YDB
             if (MainPage != null)
             {
                 ((MainPage as MainPage).Master as MenuPage).menuPageViewModel.DbList.Clear();
+                ((MainPage as MainPage).Master as MenuPage).databaseListStack.Children.Clear();
             }
 
             Application.Current.Properties.Remove("Email");

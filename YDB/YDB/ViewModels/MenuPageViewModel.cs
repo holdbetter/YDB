@@ -10,6 +10,7 @@ using Xamarin.Essentials;
 using YDB.Models;
 using YDB.Views;
 using YDB.Services;
+using System.Collections.Specialized;
 
 namespace YDB.ViewModels
 {
@@ -22,6 +23,7 @@ namespace YDB.ViewModels
         public MenuPageViewModel()
         {
             DbList = new ObservableCollection<DbMenuListModel>();
+            DbList.CollectionChanged += DbList_CollectionChanged;
 
             EnterInAppBtn = new Command(async() =>
             {
@@ -64,6 +66,36 @@ namespace YDB.ViewModels
                 
                 current.IsPresented = false;
             });
+        }
+
+        private void DbList_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            NotifyCollectionChangedAction action = e.Action;
+
+            var list = sender as ObservableCollection<DbMenuListModel>;
+
+            if (e.Action == NotifyCollectionChangedAction.Add)
+            {
+                var item = e.NewItems[0] as DbMenuListModel;
+
+                if (item != null)
+                {
+                    MenuPage master = (App.Current.MainPage as MainPage).Master as MenuPage;
+                    ListDbView listDbView = new ListDbView(item);
+                    master.databaseListStack.Children.Insert(e.NewStartingIndex, listDbView);
+                }
+            }
+
+            if (e.Action == NotifyCollectionChangedAction.Remove)
+            {
+                MenuPage master = (App.Current.MainPage as MainPage).Master as MenuPage;
+                master.databaseListStack.Children.RemoveAt(e.OldStartingIndex);
+            }
+
+            //if (e.Action == NotifyCollectionChangedAction.Move)
+            //{
+
+            //}
         }
     }
 }
