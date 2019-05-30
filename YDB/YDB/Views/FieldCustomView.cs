@@ -14,6 +14,7 @@ namespace YDB.Views
         StackLayout frameStack;
         public Entry name;
         public Entry picker;
+        public Label mField;
         Button deleteBtn;
 
         public static int score = 0; //количество созданных полей
@@ -61,6 +62,11 @@ namespace YDB.Views
             };
             picker.Focused += tap;
 
+            StackLayout tryToCreateMainField = new StackLayout()
+            {
+                Orientation = StackOrientation.Horizontal
+            };
+
             deleteBtn = new Button()
             {
                 ClassId = score.ToString(),
@@ -75,6 +81,24 @@ namespace YDB.Views
                 FontFamily = App.fontNameMedium,
                 CornerRadius = 5
             };
+
+            mField = new Label()
+            {
+                Margin = new Thickness(10, 0, 0, 0),
+                HorizontalOptions = LayoutOptions.Start,
+                FontFamily = App.fontNameMedium,
+                TextColor = Color.White,
+                VerticalTextAlignment = TextAlignment.Center,
+                Text = "Это главное поле"
+            };
+
+            tryToCreateMainField.Children.Add(mField);          
+            tryToCreateMainField.Children.Add(deleteBtn);
+
+            if (score != 0)
+            {
+                mField.IsVisible = false;
+            }
             #endregion
 
             //события кнопки
@@ -84,7 +108,7 @@ namespace YDB.Views
 
             frameStack.Children.Add(name);
             frameStack.Children.Add(picker);
-            frameStack.Children.Add(deleteBtn);
+            frameStack.Children.Add(tryToCreateMainField);
 
             //добавление стэка в Frame
             main.Content = frameStack;

@@ -21,6 +21,11 @@ namespace YDB
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            //modelBuilder.Entity<DbAccountModel>()
+            //    .HasOne(p => p.TokenInfo)
+            //    .WithOne(i => i.DbAccountModel)
+            //    .HasForeignKey<TokenModel>(u => u.DbAccountModelEmail);
+
             modelBuilder.Entity<UsersDatabases>()
                 .HasKey(t => new { t.DbAccountModelEmail, t.DbMenuListModelId });
 
@@ -38,7 +43,6 @@ namespace YDB
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlite($"Filename={_databasePath}");
-            //optionsBuilder.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=helloappdb;Trusted_Connection=True;");
         }
     }
 }

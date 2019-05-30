@@ -142,8 +142,8 @@ namespace YDB.Views
                     dbMenuListModel.IsLoading = "false";
                     dbMenuListModel.IsLoadingId = menuPage.menuPageViewModel.DbList.Count;
                     menuPage.menuPageViewModel.DbList.Add(dbMenuListModel);
-                    (App.Current.MainPage as MainPage).IsPresented = true;
                 }
+
 
                 NavigationPage np = new NavigationPage(new CreateBasePage())
                 {
@@ -156,6 +156,11 @@ namespace YDB.Views
                 if (Device.RuntimePlatform == Device.Android)
                 {
                     await Task.Delay(100);
+                }
+
+                if (Device.RuntimePlatform != Device.UWP)
+                {
+                    (App.Current.MainPage as MainPage).IsPresented = true;
                 }
 
                 Task task = Task.Run(() => SaveAllInfoAsync(dbMenuListModel, keysAndTypes));
@@ -263,6 +268,8 @@ namespace YDB.Views
                     });
                 }
 
+                db.SaveChanges();
+
                 //добавление ко всем остальным, кто есть в списке приглашенных
                 if (dbMenuListModel.IsPrivate && dbMenuListModel.InvitedUsers.Count > 0)
                 {
@@ -302,6 +309,14 @@ namespace YDB.Views
                 }
 
                 await db.SaveChangesAsync();
+
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    if (!(App.Current.MainPage as MainPage).IsPresented)
+                    {
+                        (App.Current.MainPage as MainPage).IsPresented = true;
+                    }
+                });
             }
         }
         
@@ -316,7 +331,6 @@ namespace YDB.Views
             {
                 Device.BeginInvokeOnMainThread(() =>
                 {
-                    //menuPage.menuPageViewModel.DbList.RemoveAt(dbMenuListModel.IsLoadingId);
                     menuPage.menuPageViewModel.DbList.Add(dbMenuListModel);
                 });
             }
@@ -333,7 +347,7 @@ namespace YDB.Views
             dbMenuListModel.DatabaseData.DatabaseName = dbMenuListModel.Name;
             dbMenuListModel.DatabaseData.Data = keysAndTypes;
 
-            var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok2.db");
+            var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok3.db");
 
             //сохраняем базу и добавляем в неё приглашенных пользователей
             SaveDatabaseAndAddInvitedUser(path, dbMenuListModel);
@@ -359,10 +373,10 @@ namespace YDB.Views
 
             if (x)
             {
-                int getId = Convert.ToInt32(((sender as Button).Parent.Parent.Parent as FieldCustomView).ClassId);
+                int getId = Convert.ToInt32(((sender as Button).Parent.Parent.Parent.Parent as FieldCustomView).ClassId);
 
                 //переопределение вызовет метод Callback
-                ((sender as Button).Parent.Parent.Parent.Parent.Parent.Parent as BaseConstructorPage).ButtonId = getId;
+                ((sender as Button).Parent.Parent.Parent.Parent.Parent.Parent.Parent as BaseConstructorPage).ButtonId = getId;
 
                 FieldCustomView.score--;
             }
@@ -379,8 +393,15 @@ namespace YDB.Views
 
             foreach (var item in main.Children)
             {
-                item.ClassId = newScore.ToString();
-                newScore++;
+                if (item is FieldCustomView)
+                {
+                    if (newScore == 0)
+                    {
+                        (item as FieldCustomView).mField.IsVisible = true;
+                    }
+                    item.ClassId = newScore.ToString();
+                    newScore++;
+                }
             }
         }
     }

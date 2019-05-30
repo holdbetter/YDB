@@ -29,15 +29,14 @@ namespace YDB.Models
             set
             {
                 expires_in = value;
-                dateTime = (DateTime.UtcNow).AddSeconds(expires_in);
+                //dateTime = (DateTime.UtcNow).AddMonths(1);
+                dateTime = (DateTime.UtcNow).AddHours(1);
             }
         }
         [DataMember]
         public string Token_type { get; set; }
         [DataMember]
         public string Scope { get; set; }
-        [DataMember]
-        public string Refresh_Token { get; set; }
 
         public DateTime DateTime
         {
@@ -51,6 +50,9 @@ namespace YDB.Models
                 OnPropertyChanged("DateTime");
             }
         }
+
+        public string DbAccountModelEmail { get; set; }
+        public DbAccountModel DbAccountModel { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 

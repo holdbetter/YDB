@@ -12,12 +12,7 @@
     <MasterDetailPage.Detail>
         <NavigationPage>
             <x:Arguments>
-                <views:CreateBasePage/>
-                <!--<views:DatabaseMenuPage>
-                    <x:Arguments>
-                        <models:DbMenuListModel/>
-                    </x:Arguments>
-                </views:DatabaseMenuPage>-->
+                <views:HelloPage/>
             </x:Arguments>
         </NavigationPage>
     </MasterDetailPage.Detail>

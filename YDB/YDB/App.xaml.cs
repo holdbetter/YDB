@@ -1,8 +1,12 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 using YDB.Models;
+using YDB.Services;
 using YDB.Views;
 
 [assembly: XamlCompilation(XamlCompilationOptions.Compile)]
@@ -45,30 +49,98 @@ namespace YDB
         public static string Gmail = "";
         public static DateTime ExpiredTime;
         public static DbAccountModel Account;
+        public static string Id;
+
+        private bool IsLoggedIn;
 
         public App()
         {
             InitializeComponent();
 
+            List<DbMenuListModel> databases = new List<DbMenuListModel>();
+
             //Вытаскиваем Email, если есть
             if (Application.Current.Properties.ContainsKey("Email"))
             {
-                App.Gmail = Application.Current.Properties["Email"] as string;
-                App.ExpiredTime = Convert.ToDateTime(Application.Current.Properties["Expires"]);
+                //срок годности последнего токена
+                var tokenValid = Convert.ToDateTime(Application.Current.Properties["Expires"]);
 
-                if (ExpiredTime < DateTime.UtcNow) //проверка на сервере должна быть
+                if (tokenValid < DateTime.UtcNow) //проверка на сервере должна быть
                 {
-                    App.Gmail = ""; //не загрузит профиль
+                    LogOut();
                 }
                 else
                 {
                     //запрос на получение в список всех доступных бд
+                    //databases = GetDatabases - request
+
+                    App.Gmail = Application.Current.Properties["Email"] as string;
+                    App.ExpiredTime = Convert.ToDateTime(Application.Current.Properties["Expires"]);
+                    App.Id = Application.Current.Properties["Id"] as string;
+
+                    var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok3.db");
+
+                    using (ApplicationContext db = new ApplicationContext(path))
+                    {
+                        var bases = db.Accounts.Include(us => us.UsersDatabases).ThenInclude(data => data.DbMenuListModel).Where(a => a.Email == App.Gmail).FirstOrDefault();
+
+                        if (bases != null)
+                        {
+                            foreach (var item in bases.UsersDatabases)
+                            {
+                                item.DbMenuListModel.IsLoading = "true";
+                                databases.Add(item.DbMenuListModel);
+                            }
+                        }
+                    }
+
+                    //тут анкоммент
+                    IsLoggedIn = true;
                 }
             }
 
             MainPage = new MainPage();
-            ((MainPage as MainPage).Detail as NavigationPage).BarBackgroundColor = Color.FromHex("#d83434");
+            (MainPage as MainPage).IsPresented = true;
+
+            //загружаем базы в ListView
+            if (IsLoggedIn)
+            {
+                var menuPage = ((MainPage as MainPage).Master as MenuPage);
+                menuPage.spanGmail.Text = App.Gmail;
+                menuPage.spId.Text = App.Id;
+
+                menuPage.field2.Children.Remove(menuPage.emptyDBView2);
+                menuPage.field2.Children.Add(menuPage.field3);
+                menuPage.scr1.Content = menuPage.field2;
+
+                if (databases.Count != 0)
+                {
+                    //тут анкоммент
+                    foreach (var item in databases)
+                    {
+                        menuPage.menuPageViewModel.DbList.Add(item);
+                    }
+                }
+
+                (MainPage as MainPage).IsPresented = true;
+            }
+
             ((MainPage as MainPage).Detail as NavigationPage).BarTextColor = Color.White;
+            ((MainPage as MainPage).Detail as NavigationPage).BarBackgroundColor = Color.FromHex("#d83434");
+        }
+
+        private async void LogOut()
+        {
+            if (MainPage != null)
+            {
+                ((MainPage as MainPage).Master as MenuPage).menuPageViewModel.DbList.Clear();
+            }
+
+            Application.Current.Properties.Remove("Email");
+            Application.Current.Properties.Remove("Expires");
+            Application.Current.Properties.Remove("Id");
+
+            await App.Current.SavePropertiesAsync();
         }
 
         protected override void OnStart()

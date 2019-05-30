@@ -153,12 +153,12 @@ namespace YDB.Views
 
             if (x)
             {
-                FieldCustomView fieldCustomView = (sender as Button).Parent.Parent.Parent as FieldCustomView;
+                FieldCustomView fieldCustomView = (sender as Button).Parent.Parent.Parent.Parent as FieldCustomView;
 
                 DeleteField(model, fieldCustomView);
 
                 int get = Convert.ToInt32(fieldCustomView.ClassId);
-                ((sender as Button).Parent.Parent.Parent.Parent.Parent.Parent as DatabaseEditFieldPage).ButtonId = get;
+                ((sender as Button).Parent.Parent.Parent.Parent.Parent.Parent.Parent as DatabaseEditFieldPage).ButtonId = get;
                 FieldCustomView.score--;
             }
         }
@@ -171,8 +171,15 @@ namespace YDB.Views
 
             foreach (var item in main.Children)
             {
-                item.ClassId = newScore.ToString();
-                newScore++;
+                if (item is FieldCustomView)
+                {
+                    if (newScore == 0)
+                    {
+                        (item as FieldCustomView).mField.IsVisible = true;
+                    }
+                    item.ClassId = newScore.ToString();
+                    newScore++;
+                }
             }
         }
 
@@ -181,7 +188,7 @@ namespace YDB.Views
         {
             DbMenuListModel model = mod as DbMenuListModel;
 
-            var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok2.db");
+            var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok3.db");
 
             using (ApplicationContext db = new ApplicationContext(path))
             {
@@ -300,7 +307,7 @@ namespace YDB.Views
         //удаление поля
         private void DeleteField(DbMenuListModel m, FieldCustomView fcv)
         {
-            var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok2.db");
+            var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok3.db");
 
             using (ApplicationContext db = new ApplicationContext(path))
             {
@@ -316,7 +323,7 @@ namespace YDB.Views
                              where database.Id == m.Id
                              select database).FirstOrDefault();
 
-                if (table.DatabaseData.Data.Count != 0)
+                if (table.DatabaseData.Data.Count > deleteThisIdFromTable)
                 {
                     table.DatabaseData.Data.RemoveAt(deleteThisIdFromTable);
                 }

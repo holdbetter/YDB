@@ -23,13 +23,9 @@ namespace YDB.Models
         public DatabaseData DatabaseData { get; set; }
         public List<UsersDatabases> UsersDatabases { get; set; }
 
-        //public int DbAccountModelId { get; set; }
-        //public DbAccountModel DbAccountModel { get; set; }
-
         public DbMenuListModel()
         {
             DatabaseData = new DatabaseData();
-
             UsersDatabases = new List<UsersDatabases>();
         }
 
@@ -100,6 +96,9 @@ namespace YDB.Models
         {
             Data = new List<KeysAndTypes>();
         }
+
+        public int DbMenuListModelId { get; set; }
+        public DbMenuListModel DbMenuListModel { get; set; }
 
         public List<KeysAndTypes> Data { get; set; }
     }

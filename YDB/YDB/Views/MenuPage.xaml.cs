@@ -19,9 +19,10 @@ namespace YDB.Views
 
         public ListView DbListView, createView;
         public Label hello, youNotLogin;
-        public Label helloName, emptyList;
-        public Button btnGo;
-        
+        public Label helloName, emptyList, yourId;
+        public Button btnGo, btnOut;
+        public Span spYour, spId, spanGmail, hi;
+
         ImageButton imageButton;
 
         StackLayout nonLoginView1, nonLoginView2;
@@ -117,7 +118,9 @@ namespace YDB.Views
 
             emptyDBView1 = new StackLayout()
             {
-                Padding = new Thickness(25, 0, 25, 25),
+                Padding = Device.RuntimePlatform == Device.UWP ? 
+                new Thickness(25, 10, 25, 25) :
+                new Thickness(25, 25, 25, 10),
                 HeightRequest = Device.RuntimePlatform == Device.Android ? 150 : 100,
                 VerticalOptions = LayoutOptions.Start,
                 HorizontalOptions = LayoutOptions.FillAndExpand,
@@ -131,17 +134,55 @@ namespace YDB.Views
                 HorizontalOptions = LayoutOptions.Fill
             };
 
+            FormattedString fsYourEmail = new FormattedString();
+            hi = new Span() { Text = "Привет!\n" };
+            spanGmail = new Span() { Text = "" };
+
+            spYour = new Span()
+            {
+                FontFamily = App.fontNameRegular, Text = "\nТвой id: ",
+                FontSize = Device.RuntimePlatform == Device.UWP ?
+                    Device.GetNamedSize(NamedSize.Micro, typeof(Label)) :
+                    Device.GetNamedSize(NamedSize.Small, typeof(Label)),
+            };
+            spId = new Span()
+            {
+                FontFamily = App.fontNameRegular, Text = "" ,
+                FontSize = Device.RuntimePlatform == Device.UWP ?
+                    Device.GetNamedSize(NamedSize.Micro, typeof(Label)) :
+                    Device.GetNamedSize(NamedSize.Small, typeof(Label)),
+            };
+
+            fsYourEmail.Spans.Add(hi);
+            fsYourEmail.Spans.Add(spanGmail);
+            fsYourEmail.Spans.Add(spYour);
+            fsYourEmail.Spans.Add(spId);
+
             helloName = new Label()
             {
                 HorizontalOptions = LayoutOptions.Start,
                 VerticalOptions = LayoutOptions.EndAndExpand,
-                Text = $"Привет!",
+                FormattedText = fsYourEmail,
                 FontFamily = App.fontNameBold,
                 FontSize = Device.RuntimePlatform == Device.UWP ?
                     Device.GetNamedSize(NamedSize.Small, typeof(Label)) :
                     Device.GetNamedSize(NamedSize.Large, typeof(Label)),
                 TextColor = Color.White
             };
+
+            btnOut = new Button()
+            {
+                CornerRadius = 10,
+                HorizontalOptions = LayoutOptions.EndAndExpand,
+                VerticalOptions = LayoutOptions.EndAndExpand,
+                Margin = new Thickness(0, 0, 0, 0),
+                Text = "Выйти",
+                TextColor = Color.White,
+                BackgroundColor = Color.FromHex("#c91c1c"),
+                FontFamily = App.fontNameMedium,
+                HeightRequest = 40,
+            };
+            btnOut.Pressed += BtnOut_Pressed;
 
             emptyList = new Label()
             {
@@ -154,7 +195,7 @@ namespace YDB.Views
                     Device.GetNamedSize(NamedSize.Large, typeof(Label)) * 2,
                 TextColor = Color.Gray
             };
-
+            
             imageButton = new ImageButton()
             {
                 Margin = new Thickness(0, 15, 0, 0),
@@ -169,7 +210,7 @@ namespace YDB.Views
             imageButton.Released += ImageButton_Released;
             imageButton.SetBinding(ImageButton.CommandProperty, "BaseCreateButton");
 
-
+            emptyDBView1.Children.Add(btnOut);
             emptyDBView1.Children.Add(helloName);
             emptyDBView2.Children.Add(emptyList);
             emptyDBView2.Children.Add(imageButton);
@@ -236,6 +277,7 @@ namespace YDB.Views
                 {
                     Button button = new Button()
                     {
+                        ClassId = "",
                         BorderColor = Color.Gray,
                         BorderWidth = 0.5,
                         AnchorX = 0.5,
@@ -247,7 +289,7 @@ namespace YDB.Views
                         VerticalOptions = LayoutOptions.Center,
                         HorizontalOptions = LayoutOptions.Center
                     };
-                    button.SetBinding(Button.BackgroundColorProperty, "MarkerColor");
+                    button.SetBinding(Button.BackgroundColorProperty, "HexColor");
 
                     Label label = new Label()
                     {
@@ -308,13 +350,22 @@ namespace YDB.Views
                 Content = field1
             };
 
-            if (App.Gmail != "")
-            {
-                helloName.Text = "Привет!\n" + App.Gmail;
-                scr1.Content = field2;
-            }
-
             Content = scr1;
+        }
+
+        private async void BtnOut_Pressed(object sender, EventArgs e)
+        {
+            menuPageViewModel.DbList.Clear();
+
+            Application.Current.Properties.Remove("Email");
+            Application.Current.Properties.Remove("Expires");
+            Application.Current.Properties.Remove("Id");
+
+            await App.Current.SavePropertiesAsync();
+
+            (App.Current.MainPage as MainPage).Detail = new HelloPage();
+
+            scr1.Content = field1;
         }
 
         private void Label_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -325,11 +376,8 @@ namespace YDB.Views
                 {
                     if ((sender as Label).ClassId == "true")
                     {
-                        //DbMenuListModel dbMenuList = (sender as Label).BindingContext as DbMenuListModel;
-                        //(sender as Label).Text = dbMenuList.Name;
                         (sender as Label).SetBinding(Label.TextProperty, "Name");
                         ((sender as Label).Parent.Parent as ViewCell).IsEnabled = true;
-                        //this.DbListView.ItemsSource = menuPageViewModel.DbList;
                     }
                     else if ((sender as Label).ClassId == "false")
                     {
@@ -349,7 +397,7 @@ namespace YDB.Views
                 return;
             }
 
-            var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok2.db");
+            var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok3.db");
 
             using (ApplicationContext db = new ApplicationContext(path))
             {
@@ -379,11 +427,12 @@ namespace YDB.Views
         {
             NavigationPage page = (App.Current.MainPage as MainPage).Detail as NavigationPage;
 
-            if (!(page.CurrentPage is CreateBasePage))
+            if (!(page?.CurrentPage is CreateBasePage))
             {
                 (App.Current.MainPage as MainPage).Detail = new NavigationPage(new CreateBasePage())
                 {
                     BarBackgroundColor = Color.FromHex("#d83434"),
+                    BarTextColor = Color.White
                 };
 
                 if (Device.RuntimePlatform == Device.Android)

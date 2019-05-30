@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using YDB.Models;
 using Xamarin.Forms;
+using System.Text.RegularExpressions;
 
 namespace YDB.Views
 {
@@ -51,8 +52,20 @@ namespace YDB.Views
                 Margin = new Thickness(15, 0, 15, 0),
                 HorizontalOptions = LayoutOptions.FillAndExpand,
                 FontFamily = App.fontNameRegular,
+                Text = model.Type == "Номер телефона" ? "+" : null,
                 Placeholder = "Значение"
             };
+
+            if (model.Type == "Номер телефона")
+            {
+                value.Keyboard = Keyboard.Numeric;
+            }
+            else if (model.Type == "Число")
+            {
+                value.Keyboard = Keyboard.Numeric;
+            }
+
+            value.TextChanged += Value_TextChanged;
             #endregion
 
             //если поле из базы, а не добавленое только что пользователем
@@ -75,5 +88,47 @@ namespace YDB.Views
 
             Content = main;
 		}
-	}
+
+        private void Value_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            KeysAndTypes model = BindingContext as KeysAndTypes;
+            Entry entry = sender as Entry;
+            int count = entry.Text.Count();
+
+            if (model.Type == "Номер телефона")
+            {
+                Regex deleteSymbols = new Regex(@"^\d*$");
+
+                if (!deleteSymbols.IsMatch(entry.Text) && entry.Text.Length > 0)
+                {
+                    string str = entry.Text;
+
+                    if (entry.Text != "" && entry.Text[0] != '+')
+                    {
+                         str = entry.Text.TrimStart('+');
+                    }
+
+                    Regex t = new Regex(@"\D");
+                    str = t.Replace(str, "");
+                    entry.Text = "+" + str;
+                }
+                else if(entry.Text == "")
+                {
+                    int plusIndex = -1;
+                    plusIndex = entry.Text.IndexOf('+');
+                    if (plusIndex != -1)
+                    {
+                        entry.Text.Remove(plusIndex, 1);
+                    }
+
+                    entry.Text = entry.Text.Insert(0, "+");
+                }
+            }
+            else if (model.Type == "Число")
+            {
+                Regex regex = new Regex(@"\D");
+                entry.Text = regex.Replace(entry.Text, "");
+            }
+        }
+    }
 }

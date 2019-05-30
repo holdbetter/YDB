@@ -7,6 +7,7 @@ using System.Linq;
 using YDB.Services;
 using YDB.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 
 namespace YDB.Views
 {
@@ -18,6 +19,7 @@ namespace YDB.Views
         Entry name;
         Switch isPublic;
         ScrollView markerScroll;
+        ToolbarItem toolbarItem;
 
         List<Entry> entriesOfInvitedId = new List<Entry>();
 
@@ -32,7 +34,7 @@ namespace YDB.Views
             main = new StackLayout();
 
             #region Toolbar
-            ToolbarItem toolbarItem = new ToolbarItem();
+            toolbarItem = new ToolbarItem();
             toolbarItem.Command = new Command(UpdateDataAsync);
             toolbarItem.CommandParameter = this.BindingContext;
 
@@ -50,159 +52,180 @@ namespace YDB.Views
 
             #region Views Settings
 
-            infoL = new Label()
+            deleteDatabaseBtn = new Button()
             {
-                Margin = new Thickness(15, 10, 15, 0),
+                Margin = new Thickness(5, 5),
+                BorderWidth = 1.5,
+                BorderColor = Color.FromHex("#d83434"),
+                BackgroundColor = Color.White,
+                Text = "Удалить таблицу",
+                TextColor = Color.FromHex("#d83434"),
+                FontFamily = App.fontNameMedium,
+                Command = new Command(DeleteDatabase),
+                CommandParameter = this.BindingContext,
                 HorizontalOptions = LayoutOptions.FillAndExpand,
-                VerticalOptions = LayoutOptions.Center,
-                Text = "Информация",
-                FontFamily = App.fontNameRegular,
-                FontSize = Device.RuntimePlatform == Device.UWP ? Device.GetNamedSize(NamedSize.Micro, typeof(Label)) :
+                CornerRadius = 5
+            }; //Удалить таблицу
+
+            if (App.Gmail == model.Carrier)
+            {
+                #region Add all features
+
+                infoL = new Label()
+                {
+                    Margin = new Thickness(15, 10, 15, 0),
+                    HorizontalOptions = LayoutOptions.FillAndExpand,
+                    VerticalOptions = LayoutOptions.Center,
+                    Text = "Информация",
+                    FontFamily = App.fontNameRegular,
+                    FontSize = Device.RuntimePlatform == Device.UWP ? Device.GetNamedSize(NamedSize.Micro, typeof(Label)) :
                                                                   Device.GetNamedSize(NamedSize.Small, typeof(Label)),
-                TextColor = Color.FromHex("#d83434")
-            }; //Информация
-            name = new Entry()
-            {
-                Margin = new Thickness(15, 0, 15, 0),
-                HorizontalOptions = LayoutOptions.FillAndExpand,
-                FontFamily = App.fontNameRegular,
-                Placeholder = "Название базы данных"
-            }; //Ввести ID
-            name.SetBinding(Entry.TextProperty, "Name");
+                    TextColor = Color.FromHex("#d83434")
+                }; //Информация
 
-            main.Children.Add(infoL);
-            main.Children.Add(new BoxView()
-            {
-                Margin = new Thickness(0, 5, 0, 0),
-                HeightRequest = 0.5,
-                HorizontalOptions = LayoutOptions.Fill,
-                BackgroundColor = Color.FromHex("#d83434")
-            });
-            main.Children.Add(name);
+                name = new Entry()
+                {
+                    Margin = new Thickness(15, 0, 15, 0),
+                    HorizontalOptions = LayoutOptions.FillAndExpand,
+                    FontFamily = App.fontNameRegular,
+                    Placeholder = "Название базы данных"
+                }; //Ввести название
+                name.SetBinding(Entry.TextProperty, "Name");
 
-            safetyL = new Label()
-            {
-                Margin = new Thickness(15, 10, 15, 0),
-                HorizontalOptions = LayoutOptions.FillAndExpand,
-                VerticalOptions = LayoutOptions.Center,
-                Text = "Безопасность",
-                FontFamily = App.fontNameRegular,
-                FontSize = Device.RuntimePlatform == Device.UWP ? Device.GetNamedSize(NamedSize.Micro, typeof(Label)) :
-                                                                  Device.GetNamedSize(NamedSize.Small, typeof(Label)),
-                TextColor = Color.FromHex("#d83434")
-            }; //Безопасность
+                main.Children.Add(infoL);
+                main.Children.Add(new BoxView()
+                {
+                    Margin = new Thickness(0, 5, 0, 0),
+                    HeightRequest = 0.5,
+                    HorizontalOptions = LayoutOptions.Fill,
+                    BackgroundColor = Color.FromHex("#d83434")
+                });
+                main.Children.Add(name);
 
-            markersL = new Label()
-            {
-                Margin = new Thickness(15, 10, 15, 0),
-                HorizontalOptions = LayoutOptions.FillAndExpand,
-                VerticalOptions = LayoutOptions.Center,
-                Text = "Маркеры",
-                FontFamily = App.fontNameRegular,
-                FontSize = Device.RuntimePlatform == Device.UWP ? Device.GetNamedSize(NamedSize.Micro, typeof(Label)) :
-                                                                  Device.GetNamedSize(NamedSize.Small, typeof(Label)),
-                TextColor = Color.FromHex("#d83434")
-            }; //Маркеры
+                safetyL = new Label()
+                {
+                    Margin = new Thickness(15, 10, 15, 0),
+                    HorizontalOptions = LayoutOptions.FillAndExpand,
+                    VerticalOptions = LayoutOptions.Center,
+                    Text = "Безопасность",
+                    FontFamily = App.fontNameRegular,
+                    FontSize = Device.RuntimePlatform == Device.UWP ? Device.GetNamedSize(NamedSize.Micro, typeof(Label)) :
+                                                                      Device.GetNamedSize(NamedSize.Small, typeof(Label)),
+                    TextColor = Color.FromHex("#d83434")
+                }; //Безопасность
 
-            isPublic = new Switch()
-            {
-                HorizontalOptions = LayoutOptions.EndAndExpand,
-                VerticalOptions = LayoutOptions.Center,
-            }; //Приватный свитч
-            isPublic.Toggled += IsPublic_Toggled;
-            isPublic.SetBinding(Switch.IsToggledProperty, "IsPrivate");
+                markersL = new Label()
+                {
+                    Margin = new Thickness(15, 10, 15, 0),
+                    HorizontalOptions = LayoutOptions.FillAndExpand,
+                    VerticalOptions = LayoutOptions.Center,
+                    Text = "Маркеры",
+                    FontFamily = App.fontNameRegular,
+                    FontSize = Device.RuntimePlatform == Device.UWP ? Device.GetNamedSize(NamedSize.Micro, typeof(Label)) :
+                                                                      Device.GetNamedSize(NamedSize.Small, typeof(Label)),
+                    TextColor = Color.FromHex("#d83434")
+                }; //Маркеры
 
-            nonPublic = new Label()
-            {
-                HorizontalOptions = LayoutOptions.Start,
-                VerticalOptions = LayoutOptions.Center,
-                Text = $"Приватная база данных?",
-                FontFamily = App.fontNameRegular,
-                FontSize = Device.RuntimePlatform == Device.UWP ? Device.GetNamedSize(NamedSize.Micro, typeof(Label)) :
-                                                                  Device.GetNamedSize(NamedSize.Medium, typeof(Label)),
-                TextColor = Color.Gray
-            }; //Приватная база?
+                isPublic = new Switch()
+                {
+                    HorizontalOptions = LayoutOptions.EndAndExpand,
+                    VerticalOptions = LayoutOptions.Center,
+                }; //Приватный свитч
+                isPublic.Toggled += IsPublic_Toggled;
+                isPublic.SetBinding(Switch.IsToggledProperty, "IsPrivate");
 
-            forSwitch = new StackLayout()
-            {
-                Padding = new Thickness(15, 0),
-                Margin = new Thickness(0, 5, 0, 0),
-                Orientation = StackOrientation.Horizontal,
-                Children =
+                nonPublic = new Label()
+                {
+                    HorizontalOptions = LayoutOptions.Start,
+                    VerticalOptions = LayoutOptions.Center,
+                    Text = $"Приватная база данных?",
+                    FontFamily = App.fontNameRegular,
+                    FontSize = Device.RuntimePlatform == Device.UWP ? Device.GetNamedSize(NamedSize.Micro, typeof(Label)) :
+                                                                      Device.GetNamedSize(NamedSize.Medium, typeof(Label)),
+                    TextColor = Color.Gray
+                }; //Приватная база?
+
+                forSwitch = new StackLayout()
+                {
+                    Padding = new Thickness(15, 0),
+                    Margin = new Thickness(0, 5, 0, 0),
+                    Orientation = StackOrientation.Horizontal,
+                    Children =
                 {
                     nonPublic,
                     isPublic
                 }
-            }; //Гор стэк для свитча
-            main.Children.Add(safetyL);
-            main.Children.Add(new BoxView()
-            {
-                Margin = new Thickness(0, 5, 0, 0),
-                HeightRequest = 0.5,
-                HorizontalOptions = LayoutOptions.Fill,
-                BackgroundColor = Color.FromHex("#d83434")
-            });
-            main.Children.Add(forSwitch);
-
-            foreach (var item in model.UsersDatabases)
-            {
-                string id;
-
-                var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok2.db");
-                using (ApplicationContext db = new ApplicationContext(path))
+                }; //Гор стэк для свитча
+                main.Children.Add(safetyL);
+                main.Children.Add(new BoxView()
                 {
-                    id = (from account in db.Accounts
+                    Margin = new Thickness(0, 5, 0, 0),
+                    HeightRequest = 0.5,
+                    HorizontalOptions = LayoutOptions.Fill,
+                    BackgroundColor = Color.FromHex("#d83434")
+                });
+                main.Children.Add(forSwitch);
+
+                foreach (var item in model.UsersDatabases)
+                {
+                    string id;
+
+                    var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok3.db");
+                    using (ApplicationContext db = new ApplicationContext(path))
+                    {
+                        id = (from account in db.Accounts
                               where account.Email == item.DbAccountModelEmail
                               select account).FirstOrDefault().Number.ToString();
+                    }
+
+                    Entry privateId = new Entry()
+                    {
+                        AutomationId = "entry",
+                        HorizontalOptions = LayoutOptions.FillAndExpand,
+                        Placeholder = "id пользователя",
+                        FontFamily = App.fontNameRegular,
+                        Keyboard = Keyboard.Numeric,
+                        Text = id
+                    };
+                    privateId.TextChanged += EnterId_TextChanged;
+
+                    StackLayout sl = new StackLayout()
+                    {
+                        AutomationId = "generatedField",
+                        HorizontalOptions = LayoutOptions.FillAndExpand,
+                        Padding = new Thickness(15, 0, 10, 0),
+                        Orientation = StackOrientation.Horizontal,
+                        Children =
+                        {
+                            privateId,
+                            new Button()
+                            {
+                                Margin = new Thickness(10, 0, 0, 0),
+                                HorizontalOptions = LayoutOptions.End,
+                                BackgroundColor = Color.Transparent,
+                                TextColor = Color.FromHex("#d83434"),
+                                Text = "+",
+                                WidthRequest = 50,
+                                HeightRequest = 50,
+                                FontSize = Device.GetNamedSize(NamedSize.Large, typeof(Button)),
+                                Command = new Command(CreateField)
+                            }
+                        }
+                    };
+
+                    if (App.Gmail != item.DbAccountModelEmail)
+                    {
+                        entriesOfInvitedId.Add(privateId);
+                        main.Children.Add(sl);
+                    }
                 }
 
-                Entry privateId = new Entry()
+                markersStack = new StackLayout()
                 {
-                    AutomationId = "entry",
-                    HorizontalOptions = LayoutOptions.FillAndExpand,
-                    Placeholder = "id пользователя",
-                    FontFamily = App.fontNameRegular,
-                    Keyboard = Keyboard.Numeric,
-                    Text = id
-                };
-
-                StackLayout sl = new StackLayout()
-                {
-                    AutomationId = "generatedField",
-                    HorizontalOptions = LayoutOptions.FillAndExpand,
-                    Padding = new Thickness(15, 0, 10, 0),
+                    Padding = new Thickness(15, 5),
+                    VerticalOptions = LayoutOptions.StartAndExpand,
                     Orientation = StackOrientation.Horizontal,
                     Children =
-                    {
-                        privateId,
-                        new Button()
-                        {
-                            Margin = new Thickness(10, 0, 0, 0),
-                            HorizontalOptions = LayoutOptions.End,
-                            BackgroundColor = Color.Transparent,
-                            TextColor = Color.FromHex("#d83434"),
-                            Text = "+",
-                            WidthRequest = 50,
-                            HeightRequest = 50,
-                            FontSize = Device.GetNamedSize(NamedSize.Large, typeof(Button)),
-                            Command = new Command(CreateField)
-                        }
-                    }
-                };
-
-                if (item.DbAccountModelEmail != model.Carrier)
-                {
-                    entriesOfInvitedId.Add(privateId);
-                    main.Children.Add(sl);
-                }
-            }
-
-            markersStack = new StackLayout()
-            {
-                Padding = new Thickness(15, 5),
-                VerticalOptions = LayoutOptions.StartAndExpand,
-                Orientation = StackOrientation.Horizontal,
-                Children =
                 {
                     new MarkerCustomView("#000000", Color.FromHex("#edece8"), IsMarkedCheck),
                     new MarkerCustomView("#ffffff", Color.FromHex("#353535"), IsMarkedCheck),
@@ -220,82 +243,71 @@ namespace YDB.Views
                     new MarkerCustomView("#fffa65", Color.FromHex("#353535"), IsMarkedCheck),
                     new MarkerCustomView("#cd84f1", Color.FromHex("#edece8"), IsMarkedCheck),
                 } //markers
-            }; //Стэк маркеров
+                }; //Стэк маркеров
 
-            foreach (var m in markersStack.Children)
-            {
-                if (m is MarkerCustomView)
+                foreach (var m in markersStack.Children)
                 {
-                    MarkerCustomView marker = m as MarkerCustomView;
-
-                    if (marker.HexColor == model.HexColor)
+                    if (m is MarkerCustomView)
                     {
-                        marker.rltest.Children[1].IsVisible = true;
-                        marker.Marked = true;
-                        IsMarkedCheck();
+                        MarkerCustomView marker = m as MarkerCustomView;
+
+                        if (marker.HexColor == model.HexColor)
+                        {
+                            marker.rltest.Children[1].IsVisible = true;
+                            marker.Marked = true;
+                            IsMarkedCheck();
+                        }
                     }
                 }
+
+                markerScroll = new ScrollView()
+                {
+                    Orientation = ScrollOrientation.Horizontal,
+                    HorizontalScrollBarVisibility = ScrollBarVisibility.Never,
+                    FlowDirection = FlowDirection.LeftToRight,
+                    Content = markersStack
+                }; //Упаковка скролла для маркеров
+
+                editFieldPageBtn = new Button()
+                {
+                    Margin = new Thickness(5, 5),
+                    BorderWidth = 1.5,
+                    BorderColor = Color.FromHex("#d83434"),
+                    BackgroundColor = Color.White,
+                    Text = "Редактировать поля",
+                    TextColor = Color.FromHex("#d83434"),
+                    FontFamily = App.fontNameMedium,
+                    Command = new Command(async () =>
+                    {
+                        await Navigation.PushAsync(new DatabaseEditFieldPage(model));
+                    }),
+                    HorizontalOptions = LayoutOptions.FillAndExpand,
+                    CornerRadius = 5
+                }; //Редактировать поля
+
+                main.Children.Add(markersL);
+                main.Children.Add(new BoxView()
+                {
+                    Margin = new Thickness(0, 5, 0, 0),
+                    HeightRequest = 0.5,
+                    HorizontalOptions = LayoutOptions.Fill,
+                    BackgroundColor = Color.FromHex("#d83434")
+                });
+                main.Children.Add(markerScroll);
+                main.Children.Add(new BoxView()
+                {
+                    Margin = new Thickness(0, 5, 0, 0),
+                    HeightRequest = 0.5,
+                    HorizontalOptions = LayoutOptions.Fill,
+                    BackgroundColor = Color.Gray
+                });
+                main.Children.Add(editFieldPageBtn);
+
+                main.Children.Add(deleteDatabaseBtn);
+
+                #endregion
             }
 
-            markerScroll = new ScrollView()
-            {
-                Orientation = ScrollOrientation.Horizontal,
-                HorizontalScrollBarVisibility = ScrollBarVisibility.Never,
-                FlowDirection = FlowDirection.LeftToRight,
-                Content = markersStack
-            }; //Упаковка скролла для маркеров
-
-            editFieldPageBtn = new Button()
-            {
-                Margin = new Thickness(5, 5),
-                BorderWidth = 1.5,
-                BorderColor = Color.FromHex("#d83434"),
-                BackgroundColor = Color.White,
-                Text = "Редактировать поля",
-                TextColor = Color.FromHex("#d83434"),
-                FontFamily = App.fontNameMedium,
-                Command = new Command(async() =>
-                {
-                    await Navigation.PushAsync(new DatabaseEditFieldPage(model));
-                }),
-                HorizontalOptions = LayoutOptions.FillAndExpand,
-                CornerRadius = 5
-            }; //Редактировать поля
-
-            main.Children.Add(markersL);
-            main.Children.Add(new BoxView()
-            {
-                Margin = new Thickness(0, 5, 0, 0),
-                HeightRequest = 0.5,
-                HorizontalOptions = LayoutOptions.Fill,
-                BackgroundColor = Color.FromHex("#d83434")
-            });
-            main.Children.Add(markerScroll);
-            main.Children.Add(new BoxView()
-            {
-                Margin = new Thickness(0, 5, 0, 0),
-                HeightRequest = 0.5,
-                HorizontalOptions = LayoutOptions.Fill,
-                BackgroundColor = Color.Gray
-            });
-            main.Children.Add(editFieldPageBtn);
-
-            deleteDatabaseBtn = new Button()
-            {
-                Margin = new Thickness(5, 5),
-                BorderWidth = 1.5,
-                BorderColor = Color.FromHex("#d83434"),
-                BackgroundColor = Color.White,
-                Text = "Удалить таблицу",
-                TextColor = Color.FromHex("#d83434"),
-                FontFamily = App.fontNameMedium,
-                Command = new Command(DeleteDatabase),
-                CommandParameter = this.BindingContext,
-                HorizontalOptions = LayoutOptions.FillAndExpand,
-                CornerRadius = 5
-            }; //Удалить таблицу
-
-            main.Children.Add(deleteDatabaseBtn);
             #endregion
 
             #region Свайп для страницы
@@ -319,6 +331,16 @@ namespace YDB.Views
 
         private void CreateField()
         {
+            Entry enterId = new Entry()
+            {
+                AutomationId = "entry",
+                HorizontalOptions = LayoutOptions.FillAndExpand,
+                Placeholder = "id пользователя",
+                FontFamily = App.fontNameRegular,
+                Keyboard = Keyboard.Numeric
+            };
+            enterId.TextChanged += EnterId_TextChanged;
+
             StackLayout sl = new StackLayout()
             {
                 AutomationId = "generatedField",
@@ -327,14 +349,7 @@ namespace YDB.Views
                 Orientation = StackOrientation.Horizontal,
                 Children =
                 {
-                    new Entry()
-                    {
-                        AutomationId = "entry",
-                        HorizontalOptions = LayoutOptions.FillAndExpand,
-                        Placeholder = "id пользователя",
-                        FontFamily = App.fontNameRegular,
-                        Keyboard = Keyboard.Numeric
-                    },
+                    enterId,
                     new Button()
                     {
                         Margin = new Thickness(10, 0, 0, 0),
@@ -351,6 +366,19 @@ namespace YDB.Views
             };
             main.Children.Insert(6, sl);
             entriesOfInvitedId.Add(sl.Children.First() as Entry);
+        }
+
+        private void EnterId_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            Entry enterId = sender as Entry;
+
+            Regex matching = new Regex(@"^\d*$");
+
+            if (!matching.IsMatch(enterId.Text))
+            {
+                Regex deleteSymbols = new Regex(@"\D");
+                enterId.Text = deleteSymbols.Replace(enterId.Text, "");
+            }
         }
 
         private void IsPublic_Toggled(object sender, ToggledEventArgs e)
@@ -388,22 +416,58 @@ namespace YDB.Views
 
         private async void UpdateDataAsync(object obj)
         {
-            DbMenuListModel model = obj as DbMenuListModel;
+            toolbarItem.IsEnabled = false;
 
-            string path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok2.db");
+            DbMenuListModel modelNew = obj as DbMenuListModel;
+
+            if (name.Text != null && name.Text != "")
+            {
+                string text = name.Text.Trim();
+                string firstLetter = text[0].ToString();
+                string result = (text.Remove(0, 1)).Insert(0, firstLetter.ToUpper());
+
+                if (result.Count() < 4)
+                {
+                    await DisplayAlert("Возникла проблема",
+                                        "Название базы данных должно иметь больше 3 символов",
+                                        "ОК");
+                    toolbarItem.IsEnabled = true;
+                    return;
+                }
+                else if (result.Count() > 12)
+                {
+                    await DisplayAlert("Возникла проблема",
+                                       "Название базы данных не может иметь больше 12 символов",
+                                       "ОК");
+                    toolbarItem.IsEnabled = true;
+                    return;
+                }
+
+                modelNew.Name = result;
+            }
+            else
+            {
+                await DisplayAlert("Возникла проблема",
+                                        "Название базы данных должно иметь больше 3 символов",
+                                        "ОК");
+                toolbarItem.IsEnabled = true;
+                return;
+            }
+
+            string path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok3.db");
 
             using (ApplicationContext db = new ApplicationContext(path))
             {
                 var database = (from databases in db.DatabasesList.Include(data => data.UsersDatabases)
                                 .Include(data => data.DatabaseData).ThenInclude(th => th.Data).ThenInclude(th => th.Values)
-                                where databases.Id == model.Id
+                                where databases.Id == modelNew.Id
                                 select databases).FirstOrDefault();
 
                 var menupage = ((App.Current.MainPage as MainPage).Master as MenuPage).menuPageViewModel;
 
-                database.Name = model.Name;
-                database.Marker = model.Marker;
-                database.IsPrivate = model.IsPrivate;
+                database.Name = modelNew.Name;
+                database.Marker = modelNew.Marker;
+                database.IsPrivate = modelNew.IsPrivate;
 
                 db.SaveChanges();
 
@@ -426,8 +490,6 @@ namespace YDB.Views
                     {
                         if (entry.Text != null && entry.Text != "")
                         {
-                            //тут должна быть обрезка Id, если есть какие-то лишние символы
-
                             if (!usersId.Contains(Convert.ToInt32(entry.Text)))
                             {
                                 usersId.Add(Convert.ToInt32(entry.Text));
@@ -437,7 +499,7 @@ namespace YDB.Views
 
                     foreach (var id in usersId)
                     {
-                        if (model.IsPrivate && usersId.Count > 0)
+                        if (modelNew.IsPrivate && usersId.Count > 0)
                         {
                             var a = (from account in db.Accounts.Include(us => us.UsersDatabases)
                                      where account.Number == id
@@ -445,7 +507,7 @@ namespace YDB.Views
 
                             bool isEmpty = true;
 
-                            if (model != null && a != null)
+                            if (modelNew != null && a != null)
                             {
                                 //если у пользователя уже есть данная, база, то не добавляем его еще раз
                                 foreach (var user in database.UsersDatabases)
@@ -461,7 +523,7 @@ namespace YDB.Views
                                 {
                                     a.UsersDatabases.Add(new UsersDatabases()
                                     {
-                                        DbMenuListModel = model,
+                                        DbMenuListModel = modelNew,
                                         DbAccountModel = a
                                     });
 
@@ -514,6 +576,8 @@ namespace YDB.Views
                 }
                 DatabaseMenuPage.model = database;
 
+                toolbarItem.IsEnabled = true;
+
                 await db.SaveChangesAsync();
                 await Navigation.PopAsync();
             }
@@ -535,7 +599,7 @@ namespace YDB.Views
                     BarTextColor = Color.White
                 };
 
-                var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok2.db");
+                var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok3.db");
 
                 using (ApplicationContext db = new ApplicationContext(path))
                 {
@@ -543,6 +607,19 @@ namespace YDB.Views
                                     .Include(data => data.DatabaseData).ThenInclude(th => th.Data).ThenInclude(th => th.Values)
                                     where databases.Id == model.Id
                                     select databases).FirstOrDefault();
+
+                    var account = (from accounts in db.Accounts.Include(data => data.UsersDatabases)
+                                   where accounts.Email == App.Gmail
+                                   select accounts).FirstOrDefault();
+
+                    foreach (var userBase in account.UsersDatabases)
+                    {
+                        if (model.Id == userBase.DbMenuListModelId)
+                        {
+                            account.UsersDatabases.Remove(userBase);
+                            break;
+                        }
+                    }
 
                     var menupage = ((App.Current.MainPage as MainPage).Master as MenuPage).menuPageViewModel;
                     foreach (var item in menupage.DbList)
@@ -554,7 +631,11 @@ namespace YDB.Views
                         }
                     }
 
-                    db.DatabasesList.Remove(database);
+                    if (App.Gmail == database.Carrier)
+                    {
+                        db.DatabasesList.Remove(database);
+                    }
+                    
 
                     db.SaveChanges();
 

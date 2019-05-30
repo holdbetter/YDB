@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Xamarin.Forms;
 using YDB.Models;
@@ -39,7 +40,26 @@ namespace YDB.Views
                 {
                     string text = name.Text.Trim();
                     string firstLetter = text[0].ToString();
-                    dbMenuListModel.Name = (text.Remove(0, 1)).Insert(0, firstLetter.ToUpper());
+                    string result = (text.Remove(0, 1)).Insert(0, firstLetter.ToUpper());
+
+                    if (result.Count() < 4)
+                    {
+                        await DisplayAlert("Возникла проблема",
+                                           "Название базы данных должно иметь больше 3 символов",
+                                           "ОК");
+                        toolbarItem.IsEnabled = true;
+                        return;
+                    }
+                    else if (result.Count() > 12)
+                    {
+                        await DisplayAlert("Возникла проблема",
+                                           "Название базы данных  не может иметь больше 12 символов",
+                                           "ОК");
+                        toolbarItem.IsEnabled = true;
+                        return;
+                    }
+
+                    dbMenuListModel.Name = result;
                 }
 
                 //парсинг данных по доступу к базе
@@ -268,7 +288,7 @@ namespace YDB.Views
 
         private static string GetCarrier(string gmail)
         {
-            var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok2.db");
+            var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok3.db");
 
             using (ApplicationContext db = new ApplicationContext(path))
             {
@@ -283,6 +303,16 @@ namespace YDB.Views
             //local function
             void CreateField()
             {
+                Entry enterId = new Entry()
+                {
+                    AutomationId = "entry",
+                    HorizontalOptions = LayoutOptions.FillAndExpand,
+                    Placeholder = "id пользователя",
+                    FontFamily = App.fontNameRegular,
+                    Keyboard = Keyboard.Numeric
+                };
+                enterId.TextChanged += EnterId_TextChanged;
+
                 StackLayout sl = new StackLayout()
                 {
                     AutomationId = "generatedField",
@@ -291,14 +321,7 @@ namespace YDB.Views
                     Orientation = StackOrientation.Horizontal,
                     Children =
                     {
-                        new Entry()
-                        {
-                            AutomationId = "entry",
-                            HorizontalOptions = LayoutOptions.FillAndExpand,
-                            Placeholder = "id пользователя",
-                            FontFamily = App.fontNameRegular,
-                            Keyboard = Keyboard.Numeric
-                        },
+                        enterId,
                         new Button()
                         {
                             Margin = new Thickness(10, 0, 0, 0),
@@ -332,6 +355,18 @@ namespace YDB.Views
                 }
 
                 entriesOfInvitedId.Clear();
+            }
+        }
+
+        private void EnterId_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            Entry enterId = sender as Entry;
+
+            Regex matching = new Regex(@"^\d*$");
+            if (!matching.IsMatch(enterId.Text))
+            {
+                Regex deleteSymbols = new Regex(@"\D");
+                enterId.Text = deleteSymbols.Replace(enterId.Text, "");
             }
         }
 

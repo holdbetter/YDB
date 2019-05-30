@@ -7,6 +7,7 @@ using Xamarin.Forms;
 using YDB.Services;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
+using System.Text.RegularExpressions;
 
 namespace YDB.Views
 {
@@ -87,6 +88,7 @@ namespace YDB.Views
                     //создаем объекты, если значение в первом ключе не пустое 
                     //(оно не может быть пустым, если оно есть)
                     //"объект" в данном случае это кусок View c всеми Value привязанным к ключу по Id
+                    //DataObjectCreate - одна страница с объектом
                     int index = 0;
                     foreach (var item in model.DatabaseData.Data[0].Values)
                     {
@@ -317,7 +319,7 @@ namespace YDB.Views
 
             var model = mod as DbMenuListModel;
 
-            var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok2.db");
+            var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok3.db");
 
             if (ok)
             {
@@ -440,7 +442,7 @@ namespace YDB.Views
             {
                 DbMenuListModel model = mod as DbMenuListModel;
 
-                var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok2.db");
+                var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok3.db");
                 using (ApplicationContext db = new ApplicationContext(path))
                 {
                     var obj = (from database in db.DatabasesList

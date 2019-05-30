@@ -75,47 +75,107 @@ namespace YDB.ViewModels
                     };
 
                     #region Добавление гугл-профиля в базу данных и хранение в приложении
-                    var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok2.db");
+                    var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok3.db");
 
                     using (ApplicationContext db = new ApplicationContext(path))
                     {
-                        dbAccountModel.Number = db.Accounts.Count() + 1;
-
                         //если в базе такой акк уже есть, тогда не добавляем, а просто
                         //обновляем Current.Properties, а если нет такого пользователя,
                         //то добавляем в базу и ставив Properties
-                        if (db.Accounts.FirstOrDefault(p => p.Email == dbAccountModel.Email) == null)
+
+                        var tryGetExistingAccount = db.Accounts.Include(acc => acc.TokenInfo).FirstOrDefault(p => p.Email == dbAccountModel.Email);
+
+                        if (tryGetExistingAccount == null)
                         {
-                            //тут коммент
-                            //App.Gmail = dbAccountModel.Email;
-                            Application.Current.Properties.Add("Email", dbAccountModel.Email);
-                            Application.Current.Properties.Add("Expires", dbAccountModel.TokenInfo.DateTime.AddMonths(1));
+                            //db.Accounts.Count должно возращаться и УВЕЛИЧИВАТЬСЯ на сервере
+                            dbAccountModel.Number = db.Accounts.Count() + 1;
+
+                            #region Обновление Properties
+                            if (Application.Current.Properties.ContainsKey("Email"))
+                            {
+                                Application.Current.Properties.Remove("Email");
+                                Application.Current.Properties.Remove("Expires");
+                                Application.Current.Properties.Remove("Id");
+
+                                Application.Current.Properties.Add("Email", dbAccountModel.Email);
+                                Application.Current.Properties.Add("Expires", dbAccountModel.TokenInfo.DateTime);
+                                Application.Current.Properties.Add("Id", dbAccountModel.Number.ToString());
+                            }
+                            else
+                            {
+                                Application.Current.Properties.Add("Email", dbAccountModel.Email);
+                                Application.Current.Properties.Add("Expires", dbAccountModel.TokenInfo.DateTime);
+                                Application.Current.Properties.Add("Id", dbAccountModel.Number.ToString());
+                            }
+
                             await App.Current.SavePropertiesAsync();
+                            #endregion
 
                             db.Accounts.Add(dbAccountModel);
                             db.SaveChanges();
                         }
-                        else if (db.Accounts.FirstOrDefault(p => p.Email == dbAccountModel.Email) != null)
+                        else if (tryGetExistingAccount != null)
                         {
-                            var acc = db.Accounts.Include(a => a.TokenInfo).FirstOrDefault(p => p.Email == dbAccountModel.Email);
-
-                            App.Gmail = dbAccountModel.Email;
-
-                            if (acc.TokenInfo.DateTime < DateTime.UtcNow)
+                            if (tryGetExistingAccount.TokenInfo.DateTime < DateTime.UtcNow)
                             {
-                                Application.Current.Properties.Add("Expires", dbAccountModel.TokenInfo.DateTime);
-                                await App.Current.SavePropertiesAsync();
-
-                                acc.TokenInfo = dbAccountModel.TokenInfo;
+                                tryGetExistingAccount.TokenInfo.Expires_in = dbAccountModel.TokenInfo.Expires_in;
                                 db.SaveChanges();
                             }
+
+                            #region Обновление Properties
+                            if (Application.Current.Properties.ContainsKey("Email"))
+                            {
+                                Application.Current.Properties.Remove("Email");
+                                Application.Current.Properties.Remove("Expires");
+                                Application.Current.Properties.Remove("Id");
+
+                                Application.Current.Properties.Add("Email", tryGetExistingAccount.Email);
+                                Application.Current.Properties.Add("Expires", tryGetExistingAccount.TokenInfo.DateTime);
+                                Application.Current.Properties.Add("Id", tryGetExistingAccount.Number.ToString());
+                            }
+                            else
+                            {
+                                Application.Current.Properties.Add("Email", tryGetExistingAccount.Email);
+                                Application.Current.Properties.Add("Expires", tryGetExistingAccount.TokenInfo.DateTime);
+                                Application.Current.Properties.Add("Id", tryGetExistingAccount.Number.ToString());
+                            }
+
+                            await App.Current.SavePropertiesAsync();
+                            #endregion
+                        }
+
+                        #endregion
+
+                        App.Gmail = Application.Current.Properties["Email"] as string;
+                        App.ExpiredTime = Convert.ToDateTime(Application.Current.Properties["Expires"]);
+                        App.Id = Application.Current.Properties["Id"] as string;
+
+                        menu.spanGmail.Text = App.Gmail;
+                        menu.spId.Text = App.Id.ToString();
+
+                        var bases = db.Accounts.Include(us => us.UsersDatabases).ThenInclude(data => data.DbMenuListModel).Where(a => a.Email == App.Gmail).FirstOrDefault();
+                        if (bases != null)
+                        {
+                            menu.field2.Children.Remove(menu.emptyDBView2);
+                            menu.field2.Children.Add(menu.field3);
+                            menu.scr1.Content = menu.field2;
+
+                            foreach (var item in bases.UsersDatabases)
+                            {
+                                item.DbMenuListModel.IsLoading = "true";
+                                menu.menuPageViewModel.DbList.Add(item.DbMenuListModel);
+                            }
+                        }
+                        else
+                        {
+                            menu.scr1.Content = menu.field2;
+                            menu.Content = menu.scr1;
                         }
                     }
-                    #endregion
 
-                    menu.helloName.Text = "Привет!\n" + googleProfile.Emails[0].Value;
-                    menu.scr1.Content = menu.field2;
-                    menu.Content = menu.scr1;
+                    menu.btnGo.IsVisible = true;
+                    menu.hello.Text = "Привет!";
+                    menu.youNotLogin.Text = "Здесь\nты\nнайдешь\nсвои\nбазы\nданных,\nно сначала\nнужно\nвойти";
                 }                
             }
             else if (Uri != null && prop == "Uri" && Uri.Contains("code=") == false)

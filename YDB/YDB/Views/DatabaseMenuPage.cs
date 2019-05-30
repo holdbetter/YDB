@@ -1,10 +1,12 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 using Xamarin.Forms;
 using YDB.Models;
+using YDB.Services;
 
 namespace YDB.Views
 {
@@ -90,12 +92,69 @@ namespace YDB.Views
                 (obj as Frame).BackgroundColor = Color.FromHex("#d83434");
             };
 
+            TapGestureRecognizer deleteTapped = new TapGestureRecognizer();
+            deleteTapped.Tapped += async (obj, e) => { 
+                (obj as Frame).BackgroundColor = Color.FromHex("#c9c9c9");
+
+                bool response = await DisplayAlert("Удаление таблицы",
+                    $"Вы уверены, что хотите удалить таблицу {model.Name}?\n" +
+                    $"Это необратимое действие!", "Да", "Отмена");
+
+                if (response)
+                {
+                    NavigationPage np = new NavigationPage(new CreateBasePage())
+                    {
+                        BarBackgroundColor = Color.FromHex("#d83434"),
+                        BarTextColor = Color.White
+                    };
+
+                    var path = DependencyService.Get<IPathDatabase>().GetDataBasePath("ok3.db");
+
+                    using (ApplicationContext db = new ApplicationContext(path))
+                    {
+                        var database = (from databases in db.DatabasesList.Include(data => data.UsersDatabases)
+                                        .Include(data => data.DatabaseData).ThenInclude(th => th.Data).ThenInclude(th => th.Values)
+                                        where databases.Id == model.Id
+                                        select databases).FirstOrDefault();
+
+                        var account = (from accounts in db.Accounts.Include(data => data.UsersDatabases)
+                                       where accounts.Email == App.Gmail
+                                       select accounts).FirstOrDefault();
+
+                        foreach (var userBase in account.UsersDatabases)
+                        {
+                            if (model.Id == userBase.DbMenuListModelId)
+                            {
+                                account.UsersDatabases.Remove(userBase);
+                                break;
+                            }
+                        }
+
+                        var menupage = ((App.Current.MainPage as MainPage).Master as MenuPage).menuPageViewModel;
+                        foreach (var item in menupage.DbList)
+                        {
+                            if (item.Id == database.Id)
+                            {
+                                menupage.DbList.Remove(item);
+                                break;
+                            }
+                        }
+
+                        await db.SaveChangesAsync();
+
+                        (App.Current.MainPage as MainPage).Detail = np;
+                    }
+                }
+
+                (obj as Frame).BackgroundColor = Color.FromHex("#d83434");
+            }; //удаления таблицы не у владельца
+
             editIm = new Image() { Source = "edit.png", WidthRequest = 70, HeightRequest = 70 };
             editText = new Label()
             {
                 Margin = new Thickness(0, 0, 0, 0),
                 HorizontalTextAlignment = TextAlignment.Center,
-                Text = "Редактировать",
+                Text = App.Gmail == model.Carrier ? "Редактировать" : "Удалить",
                 FontFamily = App.fontNameRegular,
                 FontSize = Device.RuntimePlatform == Device.UWP ? 12 :
                            Device.GetNamedSize(NamedSize.Small, typeof(Label))
@@ -124,13 +183,16 @@ namespace YDB.Views
                 CornerRadius = 100,
                 Padding = new Thickness(5),
                 Content = bg2
-                //Content = new StackLayout()
-                //{
-                //    Children = { bg2 }
-                //}
             };
-            edit.GestureRecognizers.Add(editTapped);
 
+            if (model.Carrier == App.Gmail)
+            {
+                edit.GestureRecognizers.Add(editTapped);
+            }
+            else
+            {
+                edit.GestureRecognizers.Add(deleteTapped);
+            }
             #endregion
 
             #region Добавить
@@ -175,25 +237,33 @@ namespace YDB.Views
                 BackgroundColor = Color.FromHex("#d83434"),
                 CornerRadius = 100,
                 Padding = new Thickness(5),
-                //Content = new StackLayout()
-                //{
-                //    Children = { bg3 }
-                //}
                 Content = bg3
             };
             add.GestureRecognizers.Add(addTapped);
 
             #endregion
-
+            
             StackLayout main = new StackLayout()
             {
                 Orientation = Device.RuntimePlatform == Device.UWP ? StackOrientation.Horizontal :
                                                                      StackOrientation.Vertical,
                 Padding = new Thickness(20, 20),
                 HorizontalOptions = LayoutOptions.FillAndExpand,
-                VerticalOptions = LayoutOptions.FillAndExpand,
-                Children = { edit, view, add }
+                VerticalOptions = LayoutOptions.FillAndExpand
             };
+
+            if (model.Carrier == App.Gmail)
+            {
+                main.Children.Add(edit);
+                main.Children.Add(view);
+                main.Children.Add(add);
+            }
+            else
+            {
+                main.Children.Add(view);
+                main.Children.Add(add);
+                main.Children.Add(edit);
+            }
 
             ScrollView scr = new ScrollView()
             {
