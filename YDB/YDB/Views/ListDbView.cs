@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Xamarin.Forms;
 using YDB.Models;
@@ -34,6 +35,7 @@ namespace YDB.Views
 
             Label label = new Label()
             {
+                BindingContext = model,
                 Margin = new Thickness(15, 0, 0, 0),
                 FontFamily = App.fontNameRegular,
                 VerticalTextAlignment = TextAlignment.Center,
@@ -57,6 +59,8 @@ namespace YDB.Views
 
             CustomFrame customFrame = new CustomFrame
             {
+                HasShadow = false,
+                BackgroundColor = Color.White,
                 Padding = new Thickness(0),
                 Margin = new Thickness(0, -5, 0, 0),
                 CornerRadius = 0,
@@ -64,6 +68,7 @@ namespace YDB.Views
                 VerticalOptions = LayoutOptions.Start,
                 Content = main
             };
+            customFrame.PropertyChanged += CustomFrame_PropertyChanged;
 
             TapGestureRecognizer listDbTap = new TapGestureRecognizer();
             listDbTap.Tapped += DbListView_ItemTappedAsync;
@@ -72,8 +77,31 @@ namespace YDB.Views
             Content = customFrame;
         }
 
+        private void CustomFrame_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            Frame thisFrame = sender as Frame;
+
+            if (e.PropertyName == "BackgroundColor")
+            {
+                if (thisFrame.BackgroundColor != Color.White)
+                {
+                    Timer timer = new Timer((f) =>
+                    {
+                        Device.BeginInvokeOnMainThread(() =>
+                        {
+                            thisFrame.BackgroundColor = Color.White;
+                        });
+                    },
+                    null, 50, Timeout.Infinite);
+                }
+            }
+        }
+
         private async void DbListView_ItemTappedAsync(object sender, EventArgs e)
         {
+            Frame frame = sender as Frame;
+            frame.BackgroundColor = Color.LightGray;
+
             var item = (sender as Element).BindingContext as DbMenuListModel;
 
             if (item.IsLoading == "false")
@@ -116,11 +144,9 @@ namespace YDB.Views
                     if ((sender as Label).ClassId == "true")
                     {
                         (sender as Label).SetBinding(Label.TextProperty, "Name");
-                        ((sender as Label).Parent as StackLayout).IsEnabled = true;
                     }
                     else if ((sender as Label).ClassId == "false")
                     {
-                        ((sender as Label).Parent as StackLayout).IsEnabled = false;
                         (sender as Label).Text = "Загрузка...";
                     }
                 }

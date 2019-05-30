@@ -228,6 +228,7 @@ namespace YDB.Views
 
             createView = new CustomFrame()
             {
+                HasShadow = false,
                 Padding = new Thickness(0),
                 Margin = new Thickness(0, -5, 0, 0),
                 CornerRadius = 0,
@@ -257,10 +258,11 @@ namespace YDB.Views
                     }
                 }
             };
+            createView.PropertyChanged += CreateView_PropertyChanged;
             createView.GestureRecognizers.Add(createTapped);
 
 
-            databaseListStack = new StackLayout();
+            databaseListStack = new StackLayout() { VerticalOptions = LayoutOptions.FillAndExpand };
             foreach (var item in menuPageViewModel.DbList)
             {
                 ListDbView listDb = new ListDbView(item);
@@ -269,6 +271,7 @@ namespace YDB.Views
 
             field3 = new StackLayout()
             {
+                BackgroundColor = Color.White,
                 VerticalOptions = LayoutOptions.FillAndExpand,
                 Children =
                 {
@@ -294,13 +297,48 @@ namespace YDB.Views
             Content = scr1;
         }
 
-        private void CreateView_Focused(object sender, FocusEventArgs e)
+        private void CreateView_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            StackLayout thisStack = sender as StackLayout;
-            Color defaultColor = thisStack.BackgroundColor;
-            createView.BackgroundColor = Color.Gray;
+            Frame frame = sender as Frame;
+
+            if (e.PropertyName == "BackgroundColor")
+            {
+                if (frame.BackgroundColor != Color.White)
+                {
+                    Timer timer = new Timer((f) =>
+                    {
+                        Device.BeginInvokeOnMainThread(() =>
+                        {
+                            frame.BackgroundColor = Color.White;
+                        });
+                    },
+                    null, 50, Timeout.Infinite);
+                }
+            }
         }
 
+        private async void CreateView_ItemTapped(object sender, EventArgs e)
+        {
+            Frame frame = sender as Frame;
+            frame.BackgroundColor = Color.LightGray;
+
+            NavigationPage page = (App.Current.MainPage as MainPage).Detail as NavigationPage;
+
+            if (!(page?.CurrentPage is CreateBasePage))
+            {
+                (App.Current.MainPage as MainPage).Detail = new NavigationPage(new CreateBasePage())
+                {
+                    BarBackgroundColor = Color.FromHex("#d83434"),
+                    BarTextColor = Color.White
+                };
+
+                if (Device.RuntimePlatform == Device.Android)
+                    await Task.Delay(100);
+            }
+
+            (App.Current.MainPage as MainPage).IsPresented = false;
+        }
+ 
         private async void BtnOut_Pressed(object sender, EventArgs e)
         {
             menuPageViewModel.DbList.Clear();
@@ -335,39 +373,6 @@ namespace YDB.Views
                     }
                 }
             }
-        }
-
-        private async void CreateView_ItemTapped(object sender, EventArgs e)
-        {
-            Frame thisStack = sender as Frame;
-            Color defaultColor = createView.BackgroundColor;
-            createView.BackgroundColor = Color.LightGray;
-
-            NavigationPage page = (App.Current.MainPage as MainPage).Detail as NavigationPage;
-
-            if (!(page?.CurrentPage is CreateBasePage))
-            {
-                (App.Current.MainPage as MainPage).Detail = new NavigationPage(new CreateBasePage())
-                {
-                    BarBackgroundColor = Color.FromHex("#d83434"),
-                    BarTextColor = Color.White
-                };
-
-                if (Device.RuntimePlatform == Device.Android)
-                    await Task.Delay(100);
-            }
-
-            (App.Current.MainPage as MainPage).IsPresented = false;
-
-
-            Timer timer = new Timer((f) => 
-            {
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    createView.BackgroundColor = defaultColor;
-                });
-            }, 
-                null, 80, Timeout.Infinite);
         }
 
         private void ImageButton_Released(object sender, EventArgs e)

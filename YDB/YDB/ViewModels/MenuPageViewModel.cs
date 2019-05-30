@@ -91,11 +91,6 @@ namespace YDB.ViewModels
                 MenuPage master = (App.Current.MainPage as MainPage).Master as MenuPage;
                 master.databaseListStack.Children.RemoveAt(e.OldStartingIndex);
             }
-
-            //if (e.Action == NotifyCollectionChangedAction.Move)
-            //{
-
-            //}
         }
     }
 }

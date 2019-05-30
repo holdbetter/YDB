@@ -144,7 +144,6 @@ namespace YDB.Views
                     menuPage.menuPageViewModel.DbList.Add(dbMenuListModel);
                 }
 
-
                 NavigationPage np = new NavigationPage(new CreateBasePage())
                 {
                     BarBackgroundColor = Color.FromHex("#d83434"),
@@ -336,8 +335,11 @@ namespace YDB.Views
             }
             else
             {
-                menuPage.menuPageViewModel.DbList.RemoveAt(dbMenuListModel.IsLoadingId);
-                menuPage.menuPageViewModel.DbList.Add(dbMenuListModel);
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    menuPage.menuPageViewModel.DbList.RemoveAt(dbMenuListModel.IsLoadingId);
+                    menuPage.menuPageViewModel.DbList.Add(dbMenuListModel);
+                });         
             }
         }
 
