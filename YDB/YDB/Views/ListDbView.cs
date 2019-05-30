@@ -35,7 +35,6 @@ namespace YDB.Views
 
             Label label = new Label()
             {
-                BindingContext = model,
                 Margin = new Thickness(15, 0, 0, 0),
                 FontFamily = App.fontNameRegular,
                 VerticalTextAlignment = TextAlignment.Center,
@@ -144,9 +143,11 @@ namespace YDB.Views
                     if ((sender as Label).ClassId == "true")
                     {
                         (sender as Label).SetBinding(Label.TextProperty, "Name");
+                        ((sender as Label).Parent as StackLayout).IsEnabled = true;
                     }
                     else if ((sender as Label).ClassId == "false")
                     {
+                        ((sender as Label).Parent as StackLayout).IsEnabled = false;
                         (sender as Label).Text = "Загрузка...";
                     }
                 }
