@@ -24,7 +24,11 @@ namespace YDB
         #endregion
 
         #region Links
-        public static string Scope = "https://www.googleapis.com/auth/email";
+        public static string Scope = 
+            "https://www.googleapis.com/auth/contacts " +
+            "https://www.googleapis.com/auth/userinfo.email " +
+            "https://www.googleapis.com/auth/userinfo.profile";
+
         public static string AuthorizeUrl = "https://accounts.google.com/o/oauth2/v2/auth";
         public static string AccessTokenUrl = "https://www.googleapis.com/oauth2/v4/token";
         #endregion

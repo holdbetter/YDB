@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using System.Web;
 
 namespace YDB.ViewModels
 {
@@ -22,13 +23,13 @@ namespace YDB.ViewModels
         string accessToken;
         string uri;
 
-        public string Uri
+        public string UriAuthData
         {
             get => uri;
             set
             {
                 uri = value;
-                OnPropertyChanged("Uri");
+                OnPropertyChanged("UriAuthData");
             }
         }
 
@@ -37,17 +38,17 @@ namespace YDB.ViewModels
             //в UwpLoginRequest / MenuPageViewModel открывается форма с логином
             //после ввода данных гугл возвращает Uri в который, есть code - auth_code
             //этот Uri попадает в свойство Uri данного объекта
-            if (Uri != null && prop == "Uri" && Uri.Contains("code=") == true)
+            if (UriAuthData != null && prop == "UriAuthData" && UriAuthData.Contains("code=") == true)
             {
                 #region Парсим code из Uri
-                int pFrom = Uri.IndexOf("code=") + "code=".Length;
-                int pTo = Uri.LastIndexOf("&");
 
-                string r = Uri.Substring(pFrom, pTo - pFrom);
+                string code = HttpUtility.ParseQueryString(new Uri(UriAuthData).Query).Get("code");
 
-                int pFTo = r.IndexOf("&");
-
-                string code = r.Substring(0, pFTo);
+                //int pFrom = Uri.IndexOf("code=") + "code=".Length;
+                //int pTo = Uri.LastIndexOf("&");
+                //string code = Uri.Substring(pFrom, pTo - pFrom);
+                //int pFTo = r.IndexOf("&");
+                //string code = r.Substring(0, pFTo);
 
                 #endregion
 
@@ -62,14 +63,14 @@ namespace YDB.ViewModels
                 this.accessToken = tokenModel.Access_token;
 
                 //получение гугл-профиля
-                GoogleProfileModel googleProfile = await GetGoogleInfo(this.accessToken);
+                GooglePersonModel googleProfile = await GetGoogleInfo(this.accessToken);
 
                 //если получение провалилось и десериализация не клеится, то выдаст DisplayAlert
-                if (googleProfile != null && tokenModel != null)
+                if (googleProfile.EmailAddresses != null && tokenModel != null)
                 {
                     DbAccountModel dbAccountModel = new DbAccountModel()
                     {
-                        Email = googleProfile.Emails[0].Value,
+                        Email = googleProfile.EmailAddresses[0].Value,
                         GoogleNumbers = googleProfile.Id,
                         TokenInfo = tokenModel
                     };
@@ -176,9 +177,22 @@ namespace YDB.ViewModels
                     menu.btnGo.IsVisible = true;
                     menu.hello.Text = "Привет!";
                     menu.youNotLogin.Text = "Здесь\nты\nнайдешь\nсвои\nбазы\nданных,\nно сначала\nнужно\nвойти";
-                }                
+                }
+                else
+                {
+                    menu.btnGo.IsVisible = true;
+                    menu.hello.Text = "Привет!";
+                    menu.youNotLogin.Text = "Здесь\nты\nнайдешь\nсвои\nбазы\nданных,\nно сначала\nнужно\nвойти";
+
+                    await menu.DisplayAlert("Упс!", "Не удалось войти в аккаунт", "ОК");
+                }
             }
-            else if (Uri != null && prop == "Uri" && Uri.Contains("code=") == false)
+            else if (UriAuthData != null && prop == "UriAuthData" && UriAuthData.Contains("code=") == false)
+            {
+                MainPage current = App.Current.MainPage as MainPage;
+                await current.DisplayAlert("Упс!", "Вы не вошли в аккаунт", "ОК");
+            }
+            else
             {
                 MainPage current = App.Current.MainPage as MainPage;
                 await current.DisplayAlert("Упс!", "Вы не вошли в аккаунт", "ОК");
@@ -223,28 +237,30 @@ namespace YDB.ViewModels
             }
         }
 
-        private async Task<GoogleProfileModel> GetGoogleInfo(string token)
+        private async Task<GooglePersonModel> GetGoogleInfo(string token)
         {
             if (Device.RuntimePlatform == Device.UWP)
             {
                 HttpClient client = new HttpClient();
 
-                string request = "https://www.googleapis.com/plus/v1/people/me" + "?access_token=" + token;
+                string request = "https://people.googleapis.com/v1/people/me?personFields=emailAddresses" 
+                    + "&access_token=" + token;
 
                 HttpResponseMessage response = await client.GetAsync(request);
                 var json = await response.Content.ReadAsStringAsync();
-                GoogleProfileModel profile = JsonConvert.DeserializeObject<GoogleProfileModel>(json);
+                GooglePersonModel profile = JsonConvert.DeserializeObject<GooglePersonModel>(json);
                 return profile;
             }
             else
             {
                 HttpClient client = new HttpClient();
 
-                string request = "https://www.googleapis.com/plus/v1/people/me" + "?access_token=" + token;
+                string request = "https://people.googleapis.com/v1/people/me?personFields=emailAddresses" +
+                    "&access_token=" + token;
 
                 HttpResponseMessage response = await client.GetAsync(request);
                 var json = await response.Content.ReadAsStringAsync();
-                GoogleProfileModel profile = JsonConvert.DeserializeObject<GoogleProfileModel>(json);
+                GooglePersonModel profile = JsonConvert.DeserializeObject<GooglePersonModel>(json);
                 return profile;
             }
 

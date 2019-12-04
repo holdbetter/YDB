@@ -31,7 +31,7 @@ namespace YDB.Droid
             Uri uri_netfx = new Uri(uri_android.ToString());
 
             //Сохраняем значение Uri
-            (App.Current.MainPage as MainPage).authentication.Uri = uri_netfx.OriginalString;
+            (App.Current.MainPage as MainPage).authentication.UriAuthData = uri_netfx.OriginalString;
 
             //Завершаем активити
             this.Finish();

@@ -6,23 +6,17 @@ using System.Text;
 namespace YDB.Models
 {
     [DataContract]
-    class GoogleProfileModel
+    class GooglePersonModel
     {
         [DataMember]
-        public Name Name;
+        public string ResourceName;
         [DataMember]
-        public Emails[] Emails;
+        public EmailAddresses[] EmailAddresses;
         [DataMember]
         public string Id;
     }
 
-    class Name
-    {
-        public string GivenName;
-        string FamilyName;
-    }
-
-    class Emails
+    class EmailAddresses
     {
         public string Value;
         string Type;

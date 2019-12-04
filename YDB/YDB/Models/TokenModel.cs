@@ -29,7 +29,6 @@ namespace YDB.Models
             set
             {
                 expires_in = value;
-                //dateTime = (DateTime.UtcNow).AddMonths(1);
                 dateTime = (DateTime.UtcNow).AddHours(1);
             }
         }

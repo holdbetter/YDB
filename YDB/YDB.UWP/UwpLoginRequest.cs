@@ -32,7 +32,7 @@ namespace YDB.UWP
 
             if (code != null)
             {
-                (YDB.App.Current.MainPage as YDB.Views.MainPage).authentication.Uri = code;
+                (YDB.App.Current.MainPage as YDB.Views.MainPage).authentication.UriAuthData = code;
             }
         }
     }
