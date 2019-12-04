@@ -223,6 +223,8 @@ namespace YDB.Views
             //ListView баз данных
             #region field3
 
+            List<string> list = new List<string>();
+
             TapGestureRecognizer createTapped = new TapGestureRecognizer();
             createTapped.Tapped += CreateView_ItemTapped;
 
